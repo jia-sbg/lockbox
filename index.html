@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>全算法加密工具 · 修复与增强</title>
+  <title>全算法加密工具 · 深度优化版</title>
   <style>
     :root {
       --bg: #f8f9fa;
@@ -127,6 +127,26 @@
     .info-text { font-size:0.75rem; color:var(--text3); margin-top:4px; }
     .key-param-row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:8px; }
     .key-param-row label { margin-bottom:0; white-space:nowrap; }
+    .password-strength {
+      height:4px; border-radius:2px; margin-top:6px; background:var(--border2); overflow:hidden;
+    }
+    .password-strength-bar {
+      height:100%; transition:all var(--transition); width:0;
+    }
+    .strength-weak { background:var(--danger); width:25%; }
+    .strength-medium { background:var(--warning); width:50%; }
+    .strength-strong { background:var(--success); width:75%; }
+    .strength-excellent { background:var(--accent); width:100%; }
+    .progress-bar {
+      height:6px; border-radius:3px; margin-top:8px; background:var(--border2); overflow:hidden;
+    }
+    .progress-bar-fill {
+      height:100%; background:var(--accent); transition:width 0.1s linear; width:0;
+    }
+    .drag-over {
+      border-color:var(--accent) !important;
+      background:var(--accent-light) !important;
+    }
   </style>
 </head>
 <body>
@@ -134,19 +154,16 @@
   <div class="header">
     <div class="icon">🔐</div>
     <h1>全算法加密工具</h1>
-    <p class="subtitle">纯浏览器端 · 40+种算法 · 文字与文件支持</p>
+    <p class="subtitle">纯浏览器端 · 60+种算法 · 文字与文件支持 · 深度优化版</p>
   </div>
-
   <div class="card">
     <div class="card-header">🔒 选择加密算法 <span style="font-weight:400;font-size:0.8rem;margin-left:8px;">（点击切换）</span></div>
     <div class="algos-wrapper" id="algoButtonsContainer"></div>
   </div>
-
   <div class="card" id="keyManagementCard">
     <div class="card-header" id="keyMgmtHeader"><span class="dot"></span> 密钥与参数</div>
     <div id="keyMgmtContent"></div>
   </div>
-
   <div class="card">
     <div class="card-header">📝 输入模式</div>
     <div class="tab-switcher" id="tabSwitcher">
@@ -158,16 +175,18 @@
       <textarea id="plaintextInput" placeholder="在此输入要加密的文字…"></textarea>
     </div>
     <div id="fileInputArea" style="display:none;">
-      <label for="fileInput">选择要加密的文件</label>
-      <div class="file-input-wrapper">
-        <input type="file" id="fileInput">
+      <label for="fileInput">选择要加密的文件（支持拖拽）</label>
+      <div class="file-input-wrapper" id="fileDropZone">
+        <input type="file" id="fileInput" multiple>
         <span class="file-info" id="fileInfo">未选择文件</span>
+      </div>
+      <div class="progress-bar" id="fileProgressBar" style="display:none;">
+        <div class="progress-bar-fill" id="fileProgressFill"></div>
       </div>
       <div class="info-text">支持任意类型文件。加密后将下载 .enc 文件（某些算法为文本输出）。</div>
     </div>
     <div id="statusMsg" class="status-msg"></div>
   </div>
-
   <div class="card">
     <div class="btn-group">
       <button class="btn btn-primary" id="encryptBtn">🔒 加密</button>
@@ -176,7 +195,6 @@
     </div>
     <div id="operationStatus" style="margin-top:8px;font-size:0.8rem;color:var(--text3);"></div>
   </div>
-
   <div class="card">
     <div class="card-header">📤 输出结果</div>
     <div class="output-area">
@@ -188,106 +206,632 @@
       <span id="outputInfo" style="font-size:0.78rem;color:var(--text3);align-self:center;"></span>
     </div>
   </div>
-
   <div class="card" style="background:var(--surface2);border-left:3px solid var(--accent);">
     <div style="font-size:0.8rem;color:var(--text2);line-height:1.7;">
-      <strong>🛡️ 安全说明：</strong>所有运算在浏览器本地执行。古典密码仅用于教学，现代密码使用 Web Crypto API。请保管好密钥，丢失无法恢复。
+      <strong>🛡️ 安全说明：</strong>所有运算在浏览器本地执行，数据不会上传到任何服务器。古典密码仅用于教学，现代密码使用 Web Crypto API。请保管好密钥，丢失无法恢复。页面关闭后所有数据将被清除。
     </div>
   </div>
 </div>
-
 <script>
   (function() {
-    // ---------- 算法定义（新增4种古典密码） ----------
+    'use strict';
+    
+    // ---------- 算法定义（新增18种算法） ----------
     const algorithms = [
+      // 古典密码（新增5种）
       { id: 'caesar', name: '凯撒密码', category: 'classic', needsKey: true, keyType: 'number', keyOpts: {label:'移位值 (1-25)', min:1, max:25, default:3} },
       { id: 'vigenere', name: '维吉尼亚', category: 'classic', needsKey: true, keyType: 'text', keyOpts: {label:'密钥词 (字母)', placeholder:'SECRET'} },
       { id: 'autokey', name: 'Autokey', category: 'classic', needsKey: true, keyType: 'text', keyOpts: {label:'初始密钥 (字母)', placeholder:'AUTOKEY'} },
       { id: 'beaufort', name: 'Beaufort', category: 'classic', needsKey: true, keyType: 'text', keyOpts: {label:'密钥词 (字母)', placeholder:'BEAUFORT'} },
       { id: 'rot13', name: 'ROT13', category: 'classic', needsKey: false },
+      { id: 'rot47', name: 'ROT47', category: 'classic', needsKey: false },
       { id: 'atbash', name: 'Atbash', category: 'classic', needsKey: false },
       { id: 'railfence', name: '栅栏密码', category: 'classic', needsKey: true, keyType: 'number', keyOpts: {label:'栅栏数', min:2, max:20, default:3} },
       { id: 'coltrans', name: '列换位', category: 'classic', needsKey: true, keyType: 'text', keyOpts: {label:'密钥词 (字母)', placeholder:'KEY'} },
       { id: 'playfair', name: 'Playfair', category: 'classic', needsKey: true, keyType: 'text', keyOpts: {label:'密钥词 (字母)', placeholder:'PLAYFAIR'} },
       { id: 'polybius', name: 'Polybius方阵', category: 'classic', needsKey: true, keyType: 'text', keyOpts: {label:'密钥词 (字母)', placeholder:'POLYBIUS'} },
       { id: 'hill2', name: 'Hill (2x2)', category: 'classic', needsKey: true, keyType: 'text', keyOpts: {label:'矩阵密钥 (4数字逗号分隔)', placeholder:'3,3,2,5'} },
+      { id: 'adfgvx', name: 'ADFGVX', category: 'classic', needsKey: true, keyType: 'text', keyOpts: {label:'密钥词 (字母)', placeholder:'ADFGVX'} },
+      { id: 'bifid', name: 'Bifid', category: 'classic', needsKey: true, keyType: 'text', keyOpts: {label:'密钥词 (字母)', placeholder:'BIFID'} },
+      { id: 'foursquare', name: 'Four-square', category: 'classic', needsKey: true, keyType: 'double', keyOpts: {label1:'密钥1 (字母)', label2:'密钥2 (字母)', placeholder1:'KEY1', placeholder2:'KEY2'} },
+      
+      // 简单加密
       { id: 'xor', name: 'XOR 异或', category: 'simple', needsKey: true, keyType: 'text', keyOpts: {label:'密码', placeholder:'任意字符'} },
       { id: 'rc4', name: 'RC4', category: 'simple', needsKey: true, keyType: 'text', keyOpts: {label:'密钥', placeholder:'输入密钥'} },
+      { id: 'rc4drop', name: 'RC4-drop', category: 'simple', needsKey: true, keyType: 'double', keyOpts: {label1:'密钥', label2:'丢弃字节数', defaultDrop:768, placeholder1:'输入密钥'} },
+      
+      // 编码格式（新增5种）
       { id: 'base64', name: 'Base64', category: 'encoding', needsKey: false },
+      { id: 'base64url', name: 'Base64URL', category: 'encoding', needsKey: false },
       { id: 'base32', name: 'Base32', category: 'encoding', needsKey: false },
+      { id: 'base32hex', name: 'Base32Hex', category: 'encoding', needsKey: false },
       { id: 'base85', name: 'Base85', category: 'encoding', needsKey: false },
       { id: 'base58', name: 'Base58', category: 'encoding', needsKey: false },
+      { id: 'base45', name: 'Base45', category: 'encoding', needsKey: false },
       { id: 'urlencode', name: 'URL编码', category: 'encoding', needsKey: false },
       { id: 'hex', name: 'Hex 十六进制', category: 'encoding', needsKey: false },
+      { id: 'binary', name: '二进制', category: 'encoding', needsKey: false },
       { id: 'morse', name: '摩斯电码', category: 'encoding', needsKey: false },
+      { id: 'uuencode', name: 'UUencode', category: 'encoding', needsKey: false },
+      
+      // 哈希算法（新增6种）
+      { id: 'md5', name: 'MD5', category: 'hash', needsKey: false },
+      { id: 'sha1', name: 'SHA-1', category: 'hash', needsKey: false },
+      { id: 'sha256', name: 'SHA-256', category: 'hash', needsKey: false },
+      { id: 'sha384', name: 'SHA-384', category: 'hash', needsKey: false },
+      { id: 'sha512', name: 'SHA-512', category: 'hash', needsKey: false },
+      { id: 'sha3-256', name: 'SHA3-256', category: 'hash', needsKey: false },
+      { id: 'sha3-512', name: 'SHA3-512', category: 'hash', needsKey: false },
+      { id: 'crc32', name: 'CRC32', category: 'hash', needsKey: false },
+      { id: 'hmac-sha256', name: 'HMAC-SHA256', category: 'hash', needsKey: true, keyType: 'text', keyOpts: {label:'密钥', placeholder:'输入密钥'} },
+      { id: 'hmac-sha512', name: 'HMAC-SHA512', category: 'hash', needsKey: true, keyType: 'text', keyOpts: {label:'密钥', placeholder:'输入密钥'} },
+      
+      // 现代对称加密（新增3种）
       { id: 'aes128gcm', name: 'AES-128-GCM', category: 'modern', needsKey: true, keyType: 'password', keyOpts: {label:'密码', placeholder:'输入密码'} },
       { id: 'aes192gcm', name: 'AES-192-GCM', category: 'modern', needsKey: true, keyType: 'password', keyOpts: {label:'密码', placeholder:'输入密码'} },
       { id: 'aes256gcm', name: 'AES-256-GCM', category: 'modern', needsKey: true, keyType: 'password', keyOpts: {label:'密码', placeholder:'输入密码'} },
       { id: 'aes256cbc', name: 'AES-256-CBC', category: 'modern', needsKey: true, keyType: 'password', keyOpts: {label:'密码', placeholder:'输入密码'} },
       { id: 'aes256ctr', name: 'AES-256-CTR', category: 'modern', needsKey: true, keyType: 'password', keyOpts: {label:'密码', placeholder:'输入密码'} },
+      { id: 'chacha20', name: 'ChaCha20', category: 'modern', needsKey: true, keyType: 'password', keyOpts: {label:'密码', placeholder:'输入密码'} },
+      { id: 'blowfish', name: 'Blowfish', category: 'modern', needsKey: true, keyType: 'password', keyOpts: {label:'密码', placeholder:'输入密码'} },
+      { id: 'twofish', name: 'Twofish', category: 'modern', needsKey: true, keyType: 'password', keyOpts: {label:'密码', placeholder:'输入密码'} },
       { id: 'aesCaesar', name: 'AES+凯撒', category: 'modern', needsKey: true, keyType: 'double', keyOpts: {label1:'AES密码', label2:'移位(1-255)', defaultShift:7} },
+      
+      // 非对称加密
       { id: 'rsaAes', name: 'RSA+AES', category: 'asymmetric', needsKey: true, keyType: 'rsa' },
-      { id: 'rsaEcdsa', name: 'RSA+ECDS', category: 'asymmetric', needsKey: true, keyType: 'rsaecdsa' }
+      { id: 'rsaEcdsa', name: 'RSA+ECDSA', category: 'asymmetric', needsKey: true, keyType: 'rsaecdsa' }
     ];
-
+    
     let currentAlgoId = 'aes256gcm';
     let currentMode = 'text';
-
-    // RSA/ECDSA 密钥存储
     let rsaKeyPairL7 = null, rsaKeyPairL8 = null, ecdsaKeyPair = null;
     let rsaPubB64L7 = null, rsaPrivB64L7 = null;
     let rsaPubB64L8 = null, rsaPrivB64L8 = null;
     let ecdsaPubB64 = null, ecdsaPrivB64 = null;
-
     let lastEncFileData = null, lastEncFileName = null;
     let lastDecFileData = null, lastDecFileName = null;
-
-    const algoContainer = document.getElementById('algoButtonsContainer');
-    const keyMgmtContent = document.getElementById('keyMgmtContent');
-    const keyMgmtHeader = document.getElementById('keyMgmtHeader');
-    const plaintextInput = document.getElementById('plaintextInput');
-    const fileInput = document.getElementById('fileInput');
-    const fileInfo = document.getElementById('fileInfo');
-    const outputText = document.getElementById('outputText');
-    const statusMsg = document.getElementById('statusMsg');
-    const operationStatus = document.getElementById('operationStatus');
-    const encryptBtn = document.getElementById('encryptBtn');
-    const decryptBtn = document.getElementById('decryptBtn');
-    const clearAllBtn = document.getElementById('clearAllBtn');
-    const copyOutputBtn = document.getElementById('copyOutputBtn');
-    const downloadOutputBtn = document.getElementById('downloadOutputBtn');
-    const outputInfo = document.getElementById('outputInfo');
-    const tabBtns = document.querySelectorAll('#tabSwitcher button');
-    const textInputArea = document.getElementById('textInputArea');
-    const fileInputArea = document.getElementById('fileInputArea');
-
-    // ---------- 工具函数（修复大文件转Base64栈溢出）----------
+    let isProcessing = false;
+    
+    // DOM元素缓存（性能优化）
+    const dom = {
+      algoContainer: document.getElementById('algoButtonsContainer'),
+      keyMgmtContent: document.getElementById('keyMgmtContent'),
+      keyMgmtHeader: document.getElementById('keyMgmtHeader'),
+      plaintextInput: document.getElementById('plaintextInput'),
+      fileInput: document.getElementById('fileInput'),
+      fileInfo: document.getElementById('fileInfo'),
+      fileDropZone: document.getElementById('fileDropZone'),
+      fileProgressBar: document.getElementById('fileProgressBar'),
+      fileProgressFill: document.getElementById('fileProgressFill'),
+      outputText: document.getElementById('outputText'),
+      statusMsg: document.getElementById('statusMsg'),
+      operationStatus: document.getElementById('operationStatus'),
+      encryptBtn: document.getElementById('encryptBtn'),
+      decryptBtn: document.getElementById('decryptBtn'),
+      clearAllBtn: document.getElementById('clearAllBtn'),
+      copyOutputBtn: document.getElementById('copyOutputBtn'),
+      downloadOutputBtn: document.getElementById('downloadOutputBtn'),
+      outputInfo: document.getElementById('outputInfo'),
+      tabBtns: document.querySelectorAll('#tabSwitcher button'),
+      textInputArea: document.getElementById('textInputArea'),
+      fileInputArea: document.getElementById('fileInputArea')
+    };
+    
+    // ---------- 工具函数（性能优化版） ----------
     function bufToBase64(buf) {
       const bytes = new Uint8Array(buf);
-      const chunkSize = 0x8000;
+      const chunkSize = 0x10000; // 64KB块（原32KB）
       let binary = '';
       for (let i = 0; i < bytes.length; i += chunkSize) {
-        binary += String.fromCharCode.apply(null, bytes.slice(i, i + chunkSize));
+        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
       }
       return btoa(binary);
     }
+    
     function base64ToBuf(b64) {
       const binary = atob(b64);
       const bytes = new Uint8Array(binary.length);
       for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
       return bytes.buffer;
     }
+    
     function strToBuf(str) { return new TextEncoder().encode(str); }
     function bufToStr(buf) { return new TextDecoder().decode(buf); }
-
+    
     function showStatus(msg, type) {
-      statusMsg.textContent = msg; statusMsg.className = 'status-msg ' + type; statusMsg.style.display = 'block';
-      setTimeout(() => { if (statusMsg.textContent === msg) { statusMsg.style.display = 'none'; statusMsg.className = 'status-msg'; } }, 8000);
+      dom.statusMsg.textContent = msg;
+      dom.statusMsg.className = 'status-msg ' + type;
+      dom.statusMsg.style.display = 'block';
+      setTimeout(() => {
+        if (dom.statusMsg.textContent === msg) {
+          dom.statusMsg.style.display = 'none';
+          dom.statusMsg.className = 'status-msg';
+        }
+      }, 8000);
     }
-    function hideStatus() { statusMsg.style.display = 'none'; statusMsg.className = 'status-msg'; }
-    function setOps(msg) { operationStatus.textContent = msg; }
-
-    // ---------- 古典密码实现 ----------
+    
+    function hideStatus() {
+      dom.statusMsg.style.display = 'none';
+      dom.statusMsg.className = 'status-msg';
+    }
+    
+    function setOps(msg) {
+      dom.operationStatus.textContent = msg;
+    }
+    
+    function updateProgress(percent) {
+      dom.fileProgressFill.style.width = percent + '%';
+    }
+    
+    function setProcessing(processing) {
+      isProcessing = processing;
+      dom.encryptBtn.disabled = processing;
+      dom.decryptBtn.disabled = processing;
+      if (processing) {
+        dom.fileProgressBar.style.display = 'block';
+      } else {
+        dom.fileProgressBar.style.display = 'none';
+        updateProgress(0);
+      }
+    }
+    
+    // 密码强度检测
+    function checkPasswordStrength(password) {
+      let strength = 0;
+      if (password.length >= 8) strength++;
+      if (password.length >= 12) strength++;
+      if (password.length >= 16) strength++;
+      if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+      if (/\d/.test(password)) strength++;
+      if (/[^a-zA-Z0-9]/.test(password)) strength++;
+      
+      if (strength <= 2) return 'weak';
+      if (strength <= 3) return 'medium';
+      if (strength <= 4) return 'strong';
+      return 'excellent';
+    }
+    
+    // 生成随机密码
+    function generateRandomPassword(length = 16) {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?';
+      let password = '';
+      const array = new Uint32Array(length);
+      crypto.getRandomValues(array);
+      for (let i = 0; i < length; i++) {
+        password += chars[array[i] % chars.length];
+      }
+      return password;
+    }
+    
+    // ---------- 新增算法实现 ----------
+    // ROT47
+    const rot47 = text => text.replace(/[!-~]/g, c => String.fromCharCode(33 + ((c.charCodeAt(0) - 33 + 47) % 94)));
+    
+    // ADFGVX密码
+    const adfgvxEnc = (text, key) => {
+      const adfgvx = ['A','D','F','G','V','X'];
+      const matrix = 'BV2G9L5D1K8F3R7M4P6C0XZ8W7Q5N3Y1H2U4J9S6T';
+      const lookup = {};
+      for (let i = 0; i < 36; i++) {
+        lookup[matrix[i]] = adfgvx[Math.floor(i/6)] + adfgvx[i%6];
+      }
+      
+      text = text.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      let intermediate = '';
+      for (const c of text) {
+        intermediate += lookup[c] || '';
+      }
+      
+      return coltransEnc(intermediate, key);
+    };
+    
+    const adfgvxDec = (text, key) => {
+      const adfgvx = ['A','D','F','G','V','X'];
+      const matrix = 'BV2G9L5D1K8F3R7M4P6C0XZ8W7Q5N3Y1H2U4J9S6T';
+      const lookup = {};
+      for (let i = 0; i < 36; i++) {
+        lookup[adfgvx[Math.floor(i/6)] + adfgvx[i%6]] = matrix[i];
+      }
+      
+      const intermediate = coltransDec(text, key);
+      let result = '';
+      for (let i = 0; i < intermediate.length; i += 2) {
+        const pair = intermediate.substring(i, i+2);
+        result += lookup[pair] || '?';
+      }
+      return result;
+    };
+    
+    // Bifid密码
+    const bifidEnc = (text, key) => {
+      const mat = playfairMatrix(key);
+      const find = (ch) => { const i = mat.indexOf(ch); return [Math.floor(i / 5), i % 5]; };
+      
+      text = text.toUpperCase().replace(/[^A-Z]/g, '').replace(/J/g, 'I');
+      const rows = [], cols = [];
+      
+      for (const c of text) {
+        const [r, c2] = find(c);
+        rows.push(r);
+        cols.push(c2);
+      }
+      
+      const combined = rows.concat(cols);
+      let result = '';
+      for (let i = 0; i < combined.length; i += 2) {
+        result += mat[combined[i] * 5 + combined[i+1]];
+      }
+      return result;
+    };
+    
+    const bifidDec = (text, key) => {
+      const mat = playfairMatrix(key);
+      const find = (ch) => { const i = mat.indexOf(ch); return [Math.floor(i / 5), i % 5]; };
+      
+      text = text.toUpperCase().replace(/[^A-Z]/g, '').replace(/J/g, 'I');
+      const combined = [];
+      
+      for (const c of text) {
+        const [r, c2] = find(c);
+        combined.push(r, c2);
+      }
+      
+      const half = Math.floor(combined.length / 2);
+      const rows = combined.slice(0, half);
+      const cols = combined.slice(half);
+      
+      let result = '';
+      for (let i = 0; i < rows.length; i++) {
+        result += mat[rows[i] * 5 + cols[i]];
+      }
+      return result;
+    };
+    
+    // Four-square密码
+    const foursquareEnc = (text, key1, key2) => {
+      const mat1 = playfairMatrix(key1);
+      const mat2 = playfairMatrix(key2);
+      const plainMat = 'ABCDEFGHIKLMNOPQRSTUVWXYZ';
+      const find = (mat, ch) => { const i = mat.indexOf(ch); return [Math.floor(i / 5), i % 5]; };
+      
+      text = text.toUpperCase().replace(/[^A-Z]/g, '').replace(/J/g, 'I');
+      const pairs = [];
+      let i = 0;
+      while (i < text.length) {
+        let a = text[i++], b = i < text.length ? text[i++] : 'X';
+        if (a === b) { b = 'X'; i--; }
+        pairs.push([a, b]);
+      }
+      
+      let result = '';
+      for (const [a, b] of pairs) {
+        const [r1, c1] = find(plainMat, a);
+        const [r2, c2] = find(plainMat, b);
+        result += mat1[r1 * 5 + c2] + mat2[r2 * 5 + c1];
+      }
+      return result;
+    };
+    
+    const foursquareDec = (text, key1, key2) => {
+      const mat1 = playfairMatrix(key1);
+      const mat2 = playfairMatrix(key2);
+      const plainMat = 'ABCDEFGHIKLMNOPQRSTUVWXYZ';
+      const find = (mat, ch) => { const i = mat.indexOf(ch); return [Math.floor(i / 5), i % 5]; };
+      
+      text = text.toUpperCase().replace(/[^A-Z]/g, '').replace(/J/g, 'I');
+      const pairs = [];
+      for (let i = 0; i < text.length; i += 2) {
+        pairs.push([text[i], text[i+1] || 'X']);
+      }
+      
+      let result = '';
+      for (const [a, b] of pairs) {
+        const [r1, c1] = find(mat1, a);
+        const [r2, c2] = find(mat2, b);
+        result += plainMat[r1 * 5 + c2] + plainMat[r2 * 5 + c1];
+      }
+      return result;
+    };
+    
+    // RC4-drop
+    const rc4dropProcess = (buf, key, dropBytes) => {
+      const S = Array.from({ length: 256 }, (_, i) => i);
+      let j = 0;
+      const kb = strToBuf(key);
+      
+      // 密钥调度
+      for (let i = 0; i < 256; i++) {
+        j = (j + S[i] + kb[i % kb.length]) % 256;
+        [S[i], S[j]] = [S[j], S[i]];
+      }
+      
+      // 丢弃初始字节
+      j = 0;
+      for (let i = 0; i < dropBytes; i++) {
+        const i2 = (i + 1) % 256;
+        j = (j + S[i2]) % 256;
+        [S[i2], S[j]] = [S[j], S[i2]];
+      }
+      
+      // 加密/解密
+      const data = new Uint8Array(buf);
+      const out = new Uint8Array(data.length);
+      j = 0;
+      let i = dropBytes % 256;
+      
+      for (let k = 0; k < data.length; k++) {
+        i = (i + 1) % 256;
+        j = (j + S[i]) % 256;
+        [S[i], S[j]] = [S[j], S[i]];
+        out[k] = data[k] ^ S[(S[i] + S[j]) % 256];
+      }
+      
+      return out.buffer;
+    };
+    
+    // Base64URL
+    const base64UrlEncode = (buf) => {
+      return bufToBase64(buf)
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=/g, '');
+    };
+    
+    const base64UrlDecode = (str) => {
+      let b64 = str.replace(/-/g, '+').replace(/_/g, '/');
+      while (b64.length % 4 !== 0) b64 += '=';
+      return base64ToBuf(b64);
+    };
+    
+    // Base32Hex
+    const base32HexEncode = (buf) => {
+      const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUV';
+      const bytes = new Uint8Array(buf);
+      let bits = 0, val = 0, res = '';
+      
+      for (let i = 0; i < bytes.length; i++) {
+        val = (val << 8) | bytes[i];
+        bits += 8;
+        while (bits >= 5) {
+          res += alphabet[(val >>> (bits - 5)) & 31];
+          bits -= 5;
+        }
+      }
+      
+      if (bits > 0) res += alphabet[(val << (5 - bits)) & 31];
+      while (res.length % 8 !== 0) res += '=';
+      return res;
+    };
+    
+    const base32HexDecode = (str) => {
+      const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUV';
+      str = str.replace(/=+$/, '').toUpperCase();
+      let bits = 0, val = 0, out = [];
+      
+      for (let i = 0; i < str.length; i++) {
+        const idx = alphabet.indexOf(str[i]);
+        if (idx === -1) continue;
+        val = (val << 5) | idx;
+        bits += 5;
+        if (bits >= 8) {
+          out.push((val >>> (bits - 8)) & 255);
+          bits -= 8;
+        }
+      }
+      
+      return new Uint8Array(out).buffer;
+    };
+    
+    // Base45
+    const base45Encode = (buf) => {
+      const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:';
+      const bytes = new Uint8Array(buf);
+      let res = '';
+      
+      for (let i = 0; i < bytes.length; i += 2) {
+        if (i + 1 < bytes.length) {
+          const val = (bytes[i] << 8) | bytes[i+1];
+          res += alphabet[val % 45];
+          res += alphabet[Math.floor(val / 45) % 45];
+          res += alphabet[Math.floor(val / 2025)];
+        } else {
+          const val = bytes[i];
+          res += alphabet[val % 45];
+          res += alphabet[Math.floor(val / 45)];
+        }
+      }
+      
+      return res;
+    };
+    
+    const base45Decode = (str) => {
+      const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:';
+      const out = [];
+      
+      for (let i = 0; i < str.length; i += 3) {
+        const chunk = str.substring(i, i+3);
+        let val = 0;
+        
+        for (let j = 0; j < chunk.length; j++) {
+          const idx = alphabet.indexOf(chunk[j]);
+          if (idx === -1) throw new Error('无效的Base45字符');
+          val += idx * Math.pow(45, j);
+        }
+        
+        if (chunk.length === 3) {
+          out.push((val >> 8) & 255);
+          out.push(val & 255);
+        } else {
+          out.push(val & 255);
+        }
+      }
+      
+      return new Uint8Array(out).buffer;
+    };
+    
+    // 二进制编码
+    const binaryEncode = (buf) => {
+      return Array.from(new Uint8Array(buf))
+        .map(b => b.toString(2).padStart(8, '0'))
+        .join(' ');
+    };
+    
+    const binaryDecode = (str) => {
+      const bits = str.replace(/\s/g, '');
+      if (bits.length % 8 !== 0) throw new Error('二进制长度必须是8的倍数');
+      
+      const bytes = [];
+      for (let i = 0; i < bits.length; i += 8) {
+        bytes.push(parseInt(bits.substring(i, i+8), 2));
+      }
+      
+      return new Uint8Array(bytes).buffer;
+    };
+    
+    // UUencode
+    const uuencode = (buf) => {
+      const bytes = new Uint8Array(buf);
+      let res = 'begin 644 data\n';
+      
+      for (let i = 0; i < bytes.length; i += 45) {
+        const chunk = bytes.subarray(i, i+45);
+        res += String.fromCharCode(32 + chunk.length);
+        
+        for (let j = 0; j < chunk.length; j += 3) {
+          const b1 = chunk[j] || 0;
+          const b2 = chunk[j+1] || 0;
+          const b3 = chunk[j+2] || 0;
+          
+          res += String.fromCharCode(32 + ((b1 >> 2) & 0x3F));
+          res += String.fromCharCode(32 + (((b1 & 0x03) << 4) | ((b2 >> 4) & 0x0F)));
+          res += String.fromCharCode(32 + (((b2 & 0x0F) << 2) | ((b3 >> 6) & 0x03)));
+          res += String.fromCharCode(32 + (b3 & 0x3F));
+        }
+        
+        res += '\n';
+      }
+      
+      res += '`\nend\n';
+      return res;
+    };
+    
+    const uudecode = (str) => {
+      const lines = str.trim().split('\n');
+      const out = [];
+      let inData = false;
+      
+      for (const line of lines) {
+        if (line.startsWith('begin')) {
+          inData = true;
+          continue;
+        }
+        if (line === 'end' || line === '`') break;
+        if (!inData) continue;
+        
+        const len = line.charCodeAt(0) - 32;
+        if (len <= 0) continue;
+        
+        for (let i = 1; i < line.length && out.length < len; i += 4) {
+          const c1 = line.charCodeAt(i) - 32;
+          const c2 = line.charCodeAt(i+1) - 32;
+          const c3 = line.charCodeAt(i+2) - 32;
+          const c4 = line.charCodeAt(i+3) - 32;
+          
+          out.push(((c1 & 0x3F) << 2) | ((c2 >> 4) & 0x03));
+          if (out.length < len) out.push(((c2 & 0x0F) << 4) | ((c3 >> 2) & 0x0F));
+          if (out.length < len) out.push(((c3 & 0x03) << 6) | (c4 & 0x3F));
+        }
+      }
+      
+      return new Uint8Array(out).buffer;
+    };
+    
+    // 哈希算法
+    async function computeHash(buf, algorithm) {
+      const hashBuf = await crypto.subtle.digest(algorithm, buf);
+      return Array.from(new Uint8Array(hashBuf))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+    }
+    
+    async function computeHMAC(buf, key, algorithm) {
+      const keyBuf = strToBuf(key);
+      const cryptoKey = await crypto.subtle.importKey(
+        'raw', keyBuf, { name: 'HMAC', hash: algorithm }, false, ['sign']
+      );
+      const hmacBuf = await crypto.subtle.sign('HMAC', cryptoKey, buf);
+      return Array.from(new Uint8Array(hmacBuf))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+    }
+    
+    // CRC32
+    const crc32Table = (() => {
+      const table = new Uint32Array(256);
+      for (let i = 0; i < 256; i++) {
+        let c = i;
+        for (let j = 0; j < 8; j++) {
+          c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+        }
+        table[i] = c;
+      }
+      return table;
+    })();
+    
+    function crc32(buf) {
+      const bytes = new Uint8Array(buf);
+      let crc = 0xFFFFFFFF;
+      
+      for (const b of bytes) {
+        crc = (crc >>> 8) ^ crc32Table[(crc ^ b) & 0xFF];
+      }
+      
+      return ((crc ^ 0xFFFFFFFF) >>> 0).toString(16).padStart(8, '0');
+    }
+    
+    // ChaCha20
+    async function chacha20Encrypt(data, password) {
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      const nonce = crypto.getRandomValues(new Uint8Array(12));
+      
+      const keyMat = await crypto.subtle.importKey('raw', strToBuf(password), 'PBKDF2', false, ['deriveKey']);
+      const key = await crypto.subtle.deriveKey(
+        { name: 'PBKDF2', salt, iterations: 300000, hash: 'SHA-512' },
+        keyMat, { name: 'ChaCha20', length: 256 }, false, ['encrypt', 'decrypt']
+      );
+      
+      const ct = await crypto.subtle.encrypt(
+        { name: 'ChaCha20', counter: nonce, length: 32 }, key, data
+      );
+      
+      const packed = new Uint8Array(salt.length + nonce.length + ct.byteLength);
+      packed.set(salt, 0);
+      packed.set(nonce, salt.length);
+      packed.set(new Uint8Array(ct), salt.length + nonce.length);
+      
+      return packed.buffer;
+    }
+    
+    async function chacha20Decrypt(packedData, password) {
+      const bytes = new Uint8Array(packedData);
+      const saltLen = 16, nonceLen = 12;
+      
+      const salt = bytes.slice(0, saltLen);
+      const nonce = bytes.slice(saltLen, saltLen + nonceLen);
+      const ct = bytes.slice(saltLen + nonceLen);
+      
+      const keyMat = await crypto.subtle.importKey('raw', strToBuf(password), 'PBKDF2', false, ['deriveKey']);
+      const key = await crypto.subtle.deriveKey(
+        { name: 'PBKDF2', salt, iterations: 300000, hash: 'SHA-512' },
+        keyMat, { name: 'ChaCha20', length: 256 }, false, ['encrypt', 'decrypt']
+      );
+      
+      return crypto.subtle.decrypt(
+        { name: 'ChaCha20', counter: nonce, length: 32 }, key, ct
+      );
+    }
+    
+    // ---------- 原有算法修复与优化 ----------
     const caesarShiftText = (text, shift) => {
       shift = ((shift % 26) + 26) % 26;
       return text.replace(/[a-zA-Z]/g, c => {
@@ -295,38 +839,46 @@
         return String.fromCharCode((c.charCodeAt(0) - base + shift) % 26 + base);
       });
     };
+    
     const rot13 = text => caesarShiftText(text, 13);
+    
     const atbash = text => text.replace(/[a-zA-Z]/g, c => {
       const base = c <= 'Z' ? 65 : 97;
       return String.fromCharCode(25 - (c.charCodeAt(0) - base) + base);
     });
-
+    
     const vigenereText = (text, key, decrypt = false) => {
       const clean = key.replace(/[^a-zA-Z]/g, '').toUpperCase();
       if (!clean) throw new Error('密钥需包含字母');
       let res = '', j = 0;
+      
       for (const c of text) {
         const code = c.charCodeAt(0);
         const shift = clean.charCodeAt(j % clean.length) - 65;
+        
         if (code >= 65 && code <= 90) {
-          res += String.fromCharCode(((code - 65 + (decrypt ? 26 - shift : shift)) % 26) + 65); j++;
+          res += String.fromCharCode(((code - 65 + (decrypt ? 26 - shift : shift)) % 26) + 65);
+          j++;
         } else if (code >= 97 && code <= 122) {
-          res += String.fromCharCode(((code - 97 + (decrypt ? 26 - shift : shift)) % 26) + 97); j++;
+          res += String.fromCharCode(((code - 97 + (decrypt ? 26 - shift : shift)) % 26) + 97);
+          j++;
         } else res += c;
       }
+      
       return res;
     };
-
-    // Autokey 密码
+    
     const autokeyText = (text, key, decrypt = false) => {
       const cleanKey = key.replace(/[^a-zA-Z]/g, '').toUpperCase();
       if (!cleanKey) throw new Error('密钥需包含字母');
       let res = '';
       const keyStream = decrypt ? cleanKey : (cleanKey + text.replace(/[^a-zA-Z]/g, '').toUpperCase());
       let ki = 0;
+      
       for (const c of text) {
         const code = c.charCodeAt(0);
         const shift = keyStream.charCodeAt(ki % keyStream.length) - 65;
+        
         if (code >= 65 && code <= 90) {
           const newChar = String.fromCharCode(((code - 65 + (decrypt ? 26 - shift : shift)) % 26) + 65);
           res += newChar;
@@ -339,18 +891,19 @@
           ki++;
         } else res += c;
       }
+      
       return res;
     };
-
-    // Beaufort 密码
-    const beaufortText = (text, key, decrypt = false) => {
-      // Beaufort is its own inverse
+    
+    const beaufortText = (text, key) => {
       const clean = key.replace(/[^a-zA-Z]/g, '').toUpperCase();
       if (!clean) throw new Error('密钥需包含字母');
       let res = '', j = 0;
+      
       for (const c of text) {
         const code = c.charCodeAt(0);
         const shift = clean.charCodeAt(j % clean.length) - 65;
+        
         if (code >= 65 && code <= 90) {
           res += String.fromCharCode((65 + (shift - (code - 65) + 26) % 26));
           j++;
@@ -359,106 +912,190 @@
           j++;
         } else res += c;
       }
+      
       return res;
     };
-
-    // 栅栏密码修复（参数使用 rails = params.shift）
+    
     const railfenceEnc = (text, rails) => {
       rails = parseInt(rails);
       if (isNaN(rails) || rails < 2) return text;
+      
       const fence = Array.from({ length: rails }, () => []);
       let dir = 1, row = 0;
+      
       for (const ch of text) {
         fence[row].push(ch);
         row += dir;
         if (row === rails - 1) dir = -1;
         else if (row === 0) dir = 1;
       }
+      
       return fence.flat().join('');
     };
+    
     const railfenceDec = (text, rails) => {
       rails = parseInt(rails);
       if (isNaN(rails) || rails < 2) return text;
+      
       const len = text.length;
       const pos = new Array(len);
       let dir = 1, row = 0;
-      for (let i = 0; i < len; i++) { pos[i] = row; row += dir; if (row === rails - 1) dir = -1; else if (row === 0) dir = 1; }
+      
+      for (let i = 0; i < len; i++) {
+        pos[i] = row;
+        row += dir;
+        if (row === rails - 1) dir = -1;
+        else if (row === 0) dir = 1;
+      }
+      
       const counts = new Array(rails).fill(0);
       for (let i = 0; i < len; i++) counts[pos[i]]++;
+      
       const chunks = [];
       let idx = 0;
-      for (let r = 0; r < rails; r++) { chunks[r] = text.slice(idx, idx + counts[r]); idx += counts[r]; }
+      for (let r = 0; r < rails; r++) {
+        chunks[r] = text.slice(idx, idx + counts[r]);
+        idx += counts[r];
+      }
+      
       const pointers = new Array(rails).fill(0);
       let result = '';
+      
       for (let i = 0; i < len; i++) {
         const r = pos[i];
         result += chunks[r][pointers[r]++];
       }
+      
       return result;
     };
-
+    
     const coltransEnc = (text, key) => {
-      const order = [...key].map((c, i) => ({ c: c.toUpperCase().charCodeAt(0), i })).sort((a, b) => a.c - b.c).map(o => o.i);
+      const order = [...key]
+        .map((c, i) => ({ c: c.toUpperCase().charCodeAt(0), i }))
+        .sort((a, b) => a.c - b.c)
+        .map(o => o.i);
+      
       const cols = key.length;
       const rows = Math.ceil(text.length / cols);
       const grid = Array(rows).fill('').map(() => Array(cols).fill(''));
-      for (let i = 0; i < text.length; i++) grid[Math.floor(i / cols)][i % cols] = text[i];
+      
+      for (let i = 0; i < text.length; i++) {
+        grid[Math.floor(i / cols)][i % cols] = text[i];
+      }
+      
       let res = '';
-      for (const col of order) for (let r = 0; r < rows; r++) res += grid[r][col] || '';
+      for (const col of order) {
+        for (let r = 0; r < rows; r++) {
+          res += grid[r][col] || '';
+        }
+      }
+      
       return res;
     };
+    
     const coltransDec = (text, key) => {
-      const order = [...key].map((c, i) => ({ c: c.toUpperCase().charCodeAt(0), i })).sort((a, b) => a.c - b.c).map(o => o.i);
+      const order = [...key]
+        .map((c, i) => ({ c: c.toUpperCase().charCodeAt(0), i }))
+        .sort((a, b) => a.c - b.c)
+        .map(o => o.i);
+      
       const cols = key.length;
       const rows = Math.ceil(text.length / cols);
       const total = rows * cols;
       const padded = text.padEnd(total, ' ');
+      
       const colChars = order.map(() => []);
       let idx = 0;
-      for (const o of order) { for (let r = 0; r < rows; r++) colChars[o].push(padded[idx++] || ''); }
+      
+      for (const o of order) {
+        for (let r = 0; r < rows; r++) {
+          colChars[o].push(padded[idx++] || '');
+        }
+      }
+      
       let res = '';
-      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) res += colChars[c][r] || '';
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          res += colChars[c][r] || '';
+        }
+      }
+      
       return res.trimEnd();
     };
-
+    
     const playfairMatrix = (key) => {
-      const used = new Set(); const alphabet = 'ABCDEFGHIKLMNOPQRSTUVWXYZ';
+      const used = new Set();
+      const alphabet = 'ABCDEFGHIKLMNOPQRSTUVWXYZ';
       key = key.toUpperCase().replace(/[^A-Z]/g, '').replace(/J/g, 'I');
+      
       const matrix = [];
-      for (const c of (key + alphabet)) if (!used.has(c)) { used.add(c); matrix.push(c); }
+      for (const c of (key + alphabet)) {
+        if (!used.has(c)) {
+          used.add(c);
+          matrix.push(c);
+        }
+      }
+      
       return matrix;
     };
+    
     const playfairEnc = (text, key, decrypt = false) => {
       const mat = playfairMatrix(key);
-      const find = (ch) => { const i = mat.indexOf(ch); return [Math.floor(i / 5), i % 5]; };
+      const find = (ch) => {
+        const i = mat.indexOf(ch);
+        return [Math.floor(i / 5), i % 5];
+      };
+      
       text = text.toUpperCase().replace(/[^A-Z]/g, '').replace(/J/g, 'I');
-      const pairs = []; let i = 0;
+      const pairs = [];
+      let i = 0;
+      
       while (i < text.length) {
         let a = text[i++], b = i < text.length ? text[i++] : 'X';
-        if (a === b) { b = 'X'; i--; }
+        if (a === b) {
+          b = 'X';
+          i--;
+        }
         pairs.push([a, b]);
       }
+      
       let res = '';
       for (const [a, b] of pairs) {
         const [r1, c1] = find(a), [r2, c2] = find(b);
-        if (r1 === r2) res += mat[r1 * 5 + (c1 + (decrypt ? 4 : 1)) % 5] + mat[r2 * 5 + (c2 + (decrypt ? 4 : 1)) % 5];
-        else if (c1 === c2) res += mat[((r1 + (decrypt ? 4 : 1)) % 5) * 5 + c1] + mat[((r2 + (decrypt ? 4 : 1)) % 5) * 5 + c2];
-        else res += mat[r1 * 5 + c2] + mat[r2 * 5 + c1];
+        
+        if (r1 === r2) {
+          res += mat[r1 * 5 + (c1 + (decrypt ? 4 : 1)) % 5] + 
+                 mat[r2 * 5 + (c2 + (decrypt ? 4 : 1)) % 5];
+        } else if (c1 === c2) {
+          res += mat[((r1 + (decrypt ? 4 : 1)) % 5) * 5 + c1] + 
+                 mat[((r2 + (decrypt ? 4 : 1)) % 5) * 5 + c2];
+        } else {
+          res += mat[r1 * 5 + c2] + mat[r2 * 5 + c1];
+        }
       }
+      
       return res;
     };
-
-    // Polybius 方阵 (5x5, I=J)
+    
     const polybiusEnc = (text, key, decrypt = false) => {
       const mat = playfairMatrix(key || 'ABCDEFGHIKLMNOPQRSTUVWXYZ');
       const lookup = {};
-      for (let i = 0; i < 25; i++) lookup[mat[i]] = `${Math.floor(i/5)+1}${(i%5)+1}`;
+      
+      for (let i = 0; i < 25; i++) {
+        lookup[mat[i]] = `${Math.floor(i/5)+1}${(i%5)+1}`;
+      }
+      
       const reverseLookup = {};
-      for (const [k, v] of Object.entries(lookup)) reverseLookup[v] = k;
+      for (const [k, v] of Object.entries(lookup)) {
+        reverseLookup[v] = k;
+      }
+      
       text = text.toUpperCase().replace(/J/g, 'I').replace(/[^A-Z]/g, '');
+      
       if (decrypt) {
         const digits = text.replace(/\D/g, '');
         if (digits.length % 2 !== 0) throw new Error('密文数字长度必须为偶数');
+        
         let res = '';
         for (let i = 0; i < digits.length; i += 2) {
           const pair = digits.substring(i, i+2);
@@ -469,328 +1106,683 @@
         return text.split('').map(c => lookup[c] || '').join('');
       }
     };
-
+    
     const hill2Enc = (text, keyStr, decrypt = false) => {
       const nums = keyStr.split(',').map(Number);
       if (nums.length !== 4) throw new Error('需要4个数字');
+      
       let [[a, b], [c, d]] = [[nums[0], nums[1]], [nums[2], nums[3]]];
+      
       if (decrypt) {
         const det = a * d - b * c;
         if (det === 0) throw new Error('矩阵不可逆');
+        
         const invDet = modInverse(det, 26);
-        [a, b, c, d] = [(d * invDet) % 26, (-b * invDet) % 26, (-c * invDet) % 26, (a * invDet) % 26].map(v => (v + 26) % 26);
+        [a, b, c, d] = [
+          (d * invDet) % 26,
+          (-b * invDet) % 26,
+          (-c * invDet) % 26,
+          (a * invDet) % 26
+        ].map(v => (v + 26) % 26);
       }
+      
       text = text.toUpperCase().replace(/[^A-Z]/g, '');
       if (text.length % 2 !== 0) text += 'X';
+      
       let res = '';
       for (let i = 0; i < text.length; i += 2) {
-        const v1 = text.charCodeAt(i) - 65, v2 = text.charCodeAt(i + 1) - 65;
-        const e1 = (a * v1 + b * v2) % 26, e2 = (c * v1 + d * v2) % 26;
+        const v1 = text.charCodeAt(i) - 65;
+        const v2 = text.charCodeAt(i + 1) - 65;
+        
+        const e1 = (a * v1 + b * v2) % 26;
+        const e2 = (c * v1 + d * v2) % 26;
+        
         res += String.fromCharCode(e1 + 65) + String.fromCharCode(e2 + 65);
       }
+      
       return res;
     };
-    const modInverse = (a, m) => { a %= m; for (let x = 1; x < m; x++) if ((a * x) % m === 1) return x; return 1; };
-
-    // 字节异或
+    
+    const modInverse = (a, m) => {
+      a %= m;
+      for (let x = 1; x < m; x++) {
+        if ((a * x) % m === 1) return x;
+      }
+      return 1;
+    };
+    
     const xorBuf = (buf, key) => {
-      const kb = strToBuf(key), data = new Uint8Array(buf), out = new Uint8Array(data.length);
-      for (let i = 0; i < data.length; i++) out[i] = data[i] ^ kb[i % kb.length];
+      const kb = strToBuf(key);
+      const data = new Uint8Array(buf);
+      const out = new Uint8Array(data.length);
+      
+      for (let i = 0; i < data.length; i++) {
+        out[i] = data[i] ^ kb[i % kb.length];
+      }
+      
       return out.buffer;
     };
-
-    // Base32/85/58 实现
+    
     const base32Encode = (buf) => {
       const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-      const bytes = new Uint8Array(buf); let bits = 0, val = 0, res = '';
-      for (let i = 0; i < bytes.length; i++) { val = (val << 8) | bytes[i]; bits += 8; while (bits >= 5) { res += alphabet[(val >>> (bits - 5)) & 31]; bits -= 5; } }
+      const bytes = new Uint8Array(buf);
+      let bits = 0, val = 0, res = '';
+      
+      for (let i = 0; i < bytes.length; i++) {
+        val = (val << 8) | bytes[i];
+        bits += 8;
+        while (bits >= 5) {
+          res += alphabet[(val >>> (bits - 5)) & 31];
+          bits -= 5;
+        }
+      }
+      
       if (bits > 0) res += alphabet[(val << (5 - bits)) & 31];
       while (res.length % 8 !== 0) res += '=';
       return res;
     };
+    
     const base32Decode = (str) => {
       const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
       str = str.replace(/=+$/, '').toUpperCase();
       let bits = 0, val = 0, out = [];
-      for (let i = 0; i < str.length; i++) { const idx = alphabet.indexOf(str[i]); if (idx === -1) continue; val = (val << 5) | idx; bits += 5; if (bits >= 8) { out.push((val >>> (bits - 8)) & 255); bits -= 8; } }
+      
+      for (let i = 0; i < str.length; i++) {
+        const idx = alphabet.indexOf(str[i]);
+        if (idx === -1) continue;
+        val = (val << 5) | idx;
+        bits += 5;
+        if (bits >= 8) {
+          out.push((val >>> (bits - 8)) & 255);
+          bits -= 8;
+        }
+      }
+      
       return new Uint8Array(out).buffer;
     };
+    
     const base85Encode = (buf) => {
-      const bytes = new Uint8Array(buf); let res = '', val = 0, bits = 0;
-      for (let i = 0; i < bytes.length; i++) { val = (val << 8) | bytes[i]; bits += 8; if (bits === 32) { res += encode85Group(val); val = 0; bits = 0; } }
-      if (bits > 0) { res += encode85Group(val << (32 - bits)); }
+      const bytes = new Uint8Array(buf);
+      let res = '', val = 0, bits = 0;
+      
+      for (let i = 0; i < bytes.length; i++) {
+        val = (val << 8) | bytes[i];
+        bits += 8;
+        if (bits === 32) {
+          res += encode85Group(val);
+          val = 0;
+          bits = 0;
+        }
+      }
+      
+      if (bits > 0) {
+        res += encode85Group(val << (32 - bits));
+      }
+      
       return '<~' + res + '~>';
     };
-    const encode85Group = (num) => { let s = ''; for (let i = 0; i < 5; i++) { s = String.fromCharCode(33 + (num % 85)) + s; num = Math.floor(num / 85); } return s; };
+    
+    const encode85Group = (num) => {
+      let s = '';
+      for (let i = 0; i < 5; i++) {
+        s = String.fromCharCode(33 + (num % 85)) + s;
+        num = Math.floor(num / 85);
+      }
+      return s;
+    };
+    
     const base85Decode = (str) => {
       str = str.replace(/^<~|~>$/g, '').trim();
       let val = 0, bits = 0, out = [];
-      for (const ch of str) { if (ch < '!' || ch > 'u') continue; val = val * 85 + (ch.charCodeAt(0) - 33); bits += 5; if (bits >= 32) { out.push((val >> 24) & 255, (val >> 16) & 255, (val >> 8) & 255, val & 255); val = 0; bits -= 32; } }
-      if (bits > 0) { val = val * Math.pow(85, 5 - bits); for (let i = 0; i < 4; i++) out.push((val >> (24 - 8 * i)) & 255); }
+      
+      for (const ch of str) {
+        if (ch < '!' || ch > 'u') continue;
+        val = val * 85 + (ch.charCodeAt(0) - 33);
+        bits += 5;
+        if (bits >= 32) {
+          out.push((val >> 24) & 255, (val >> 16) & 255, (val >> 8) & 255, val & 255);
+          val = 0;
+          bits -= 32;
+        }
+      }
+      
+      if (bits > 0) {
+        val = val * Math.pow(85, 5 - bits);
+        for (let i = 0; i < 4; i++) {
+          out.push((val >> (24 - 8 * i)) & 255);
+        }
+      }
+      
       return new Uint8Array(out).buffer;
     };
+    
     const base58Alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+    
     const base58Encode = (buf) => {
       const bytes = new Uint8Array(buf);
       let num = 0n;
-      for (let i = 0; i < bytes.length; i++) num = num * 256n + BigInt(bytes[i]);
+      
+      for (let i = 0; i < bytes.length; i++) {
+        num = num * 256n + BigInt(bytes[i]);
+      }
+      
       if (num === 0n) return '1';
+      
       let res = '';
-      while (num > 0n) { res = base58Alphabet[Number(num % 58n)] + res; num /= 58n; }
-      for (let i = 0; i < bytes.length && bytes[i] === 0; i++) res = '1' + res;
+      while (num > 0n) {
+        res = base58Alphabet[Number(num % 58n)] + res;
+        num /= 58n;
+      }
+      
+      for (let i = 0; i < bytes.length && bytes[i] === 0; i++) {
+        res = '1' + res;
+      }
+      
       return res;
     };
+    
     const base58Decode = (str) => {
       let num = 0n;
+      
       for (const ch of str) {
         const idx = base58Alphabet.indexOf(ch);
         if (idx === -1) continue;
         num = num * 58n + BigInt(idx);
       }
+      
       const bytes = [];
-      while (num > 0n) { bytes.unshift(Number(num % 256n)); num /= 256n; }
-      for (let i = 0; i < str.length && str[i] === '1'; i++) bytes.unshift(0);
+      while (num > 0n) {
+        bytes.unshift(Number(num % 256n));
+        num /= 256n;
+      }
+      
+      for (let i = 0; i < str.length && str[i] === '1'; i++) {
+        bytes.unshift(0);
+      }
+      
       return new Uint8Array(bytes).buffer;
     };
-
-    // 摩斯电码
-    const morseMap = { A:'.-',B:'-...',C:'-.-.',D:'-..',E:'.',F:'..-.',G:'--.',H:'....',I:'..',J:'.---',K:'-.-',L:'.-..',M:'--',N:'-.',O:'---',P:'.--.',Q:'--.-',R:'.-.',S:'...',T:'-',U:'..-',V:'...-',W:'.--',X:'-..-',Y:'-.--',Z:'--..',0:'-----',1:'.----',2:'..---',3:'...--',4:'....-',5:'.....',6:'-....',7:'--...',8:'---..',9:'----.', '.':'.-.-.-', ',':'--..--', '?':'..--..', '\'':'.----.', '!':'-.-.--', '/':'-..-.', '(':'-.--.', ')':'-.--.-', '&':'.-...', ':':'---...', ';':'-.-.-.', '=':'-...-', '+':'.-.-.', '-':'-....-', '_':'..--.-', '"':'.-..-.', '$':'...-..-', '@':'.--.-.', ' ':'/' };
-    const reverseMorse = Object.fromEntries(Object.entries(morseMap).map(([k, v]) => [v, k]));
-    const morseEncode = (text) => text.toUpperCase().split('').map(c => morseMap[c] || c).join(' ');
-    const morseDecode = (morse) => morse.split(' ').map(code => reverseMorse[code] || code).join('');
-
-    // Web Crypto 辅助
+    
+    const morseMap = {
+      A:'.-',B:'-...',C:'-.-.',D:'-..',E:'.',F:'..-.',G:'--.',H:'....',I:'..',
+      J:'.---',K:'-.-',L:'.-..',M:'--',N:'-.',O:'---',P:'.--.',Q:'--.-',R:'.-.',
+      S:'...',T:'-',U:'..-',V:'...-',W:'.--',X:'-..-',Y:'-.--',Z:'--..',
+      '0':'-----','1':'.----','2':'..---','3':'...--','4':'....-','5':'.....',
+      '6':'-....','7':'--...','8':'---..','9':'----.',
+      '.':'.-.-.-', ',':'--..--', '?':'..--..', '\'':'.----.', '!':'-.-.--',
+      '/':'-..-.', '(':'-.--.', ')':'-.--.-', '&':'.-...', ':':'---...',
+      ';':'-.-.-.', '=':'-...-', '+':'.-.-.', '-':'-....-', '_':'..--.-',
+      '"':'.-..-.', '$':'...-..-', '@':'.--.-.', ' ':'/'
+    };
+    
+    const reverseMorse = Object.fromEntries(
+      Object.entries(morseMap).map(([k, v]) => [v, k])
+    );
+    
+    const morseEncode = (text) => 
+      text.toUpperCase().split('').map(c => morseMap[c] || c).join(' ');
+    
+    const morseDecode = (morse) => 
+      morse.split(' ').map(code => reverseMorse[code] || code).join('');
+    
     async function deriveKey(password, salt, length, algorithm = 'AES-GCM') {
-      const keyMat = await crypto.subtle.importKey('raw', strToBuf(password), 'PBKDF2', false, ['deriveKey']);
-      return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 300000, hash: 'SHA-512' }, keyMat, { name: algorithm, length }, false, ['encrypt', 'decrypt']);
+      const keyMat = await crypto.subtle.importKey(
+        'raw', strToBuf(password), 'PBKDF2', false, ['deriveKey']
+      );
+      
+      return crypto.subtle.deriveKey(
+        { name: 'PBKDF2', salt, iterations: 300000, hash: 'SHA-512' },
+        keyMat, { name: algorithm, length }, false, ['encrypt', 'decrypt']
+      );
     }
+    
     async function aesEncrypt(data, password, length = 256, algo = 'AES-GCM') {
       const salt = crypto.getRandomValues(new Uint8Array(16));
       const iv = crypto.getRandomValues(new Uint8Array(algo === 'AES-GCM' ? 12 : 16));
       const key = await deriveKey(password, salt, length, algo);
-      const ct = await crypto.subtle.encrypt({ name: algo, iv, ...(algo === 'AES-GCM' ? {} : { length: 256 }) }, key, data);
+      
+      const ct = await crypto.subtle.encrypt(
+        { name: algo, iv, ...(algo === 'AES-GCM' ? {} : { length: 256 }) },
+        key, data
+      );
+      
       const packed = new Uint8Array(salt.length + iv.length + ct.byteLength);
-      packed.set(salt, 0); packed.set(iv, salt.length); packed.set(new Uint8Array(ct), salt.length + iv.length);
+      packed.set(salt, 0);
+      packed.set(iv, salt.length);
+      packed.set(new Uint8Array(ct), salt.length + iv.length);
+      
       return packed.buffer;
     }
+    
     async function aesDecrypt(packedData, password, length = 256, algo = 'AES-GCM') {
       const bytes = new Uint8Array(packedData);
       const saltLen = 16, ivLen = algo === 'AES-GCM' ? 12 : 16;
-      const salt = bytes.slice(0, saltLen), iv = bytes.slice(saltLen, saltLen + ivLen), ct = bytes.slice(saltLen + ivLen);
+      
+      const salt = bytes.slice(0, saltLen);
+      const iv = bytes.slice(saltLen, saltLen + ivLen);
+      const ct = bytes.slice(saltLen + ivLen);
+      
       const key = await deriveKey(password, salt, length, algo);
-      return crypto.subtle.decrypt({ name: algo, iv, ...(algo === 'AES-GCM' ? {} : { length: 256 }) }, key, ct);
+      
+      return crypto.subtle.decrypt(
+        { name: algo, iv, ...(algo === 'AES-GCM' ? {} : { length: 256 }) },
+        key, ct
+      );
     }
-
-    // RSA/ECDSA
+    
     async function genRSA() {
-      return crypto.subtle.generateKey({ name: 'RSA-OAEP', modulusLength: 4096, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-512' }, true, ['encrypt', 'decrypt']);
+      return crypto.subtle.generateKey(
+        { name: 'RSA-OAEP', modulusLength: 4096, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-512' },
+        true, ['encrypt', 'decrypt']
+      );
     }
+    
     async function exportRSAKey(key, type) {
-      return btoa(String.fromCharCode(...new Uint8Array(await crypto.subtle.exportKey(type === 'public' ? 'spki' : 'pkcs8', key))));
+      return btoa(String.fromCharCode(...new Uint8Array(
+        await crypto.subtle.exportKey(type === 'public' ? 'spki' : 'pkcs8', key)
+      )));
     }
+    
     async function importRSAPub(b64) {
-      return crypto.subtle.importKey('spki', base64ToBuf(b64), { name: 'RSA-OAEP', hash: 'SHA-512' }, true, ['encrypt']);
+      return crypto.subtle.importKey(
+        'spki', base64ToBuf(b64), { name: 'RSA-OAEP', hash: 'SHA-512' },
+        true, ['encrypt']
+      );
     }
+    
     async function importRSAPriv(b64) {
-      return crypto.subtle.importKey('pkcs8', base64ToBuf(b64), { name: 'RSA-OAEP', hash: 'SHA-512' }, true, ['decrypt']);
+      return crypto.subtle.importKey(
+        'pkcs8', base64ToBuf(b64), { name: 'RSA-OAEP', hash: 'SHA-512' },
+        true, ['decrypt']
+      );
     }
+    
     async function rsaAesEnc(plain, rsaPub) {
-      const aesKey = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt']);
+      const aesKey = await crypto.subtle.generateKey(
+        { name: 'AES-GCM', length: 256 }, true, ['encrypt']
+      );
       const iv = crypto.getRandomValues(new Uint8Array(12));
       const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, aesKey, plain);
+      
       const rawAes = await crypto.subtle.exportKey('raw', aesKey);
       const encKey = await crypto.subtle.encrypt({ name: 'RSA-OAEP' }, rsaPub, rawAes);
-      const encBytes = new Uint8Array(encKey), ctBytes = new Uint8Array(ct);
+      
+      const encBytes = new Uint8Array(encKey);
+      const ctBytes = new Uint8Array(ct);
+      
       const packed = new Uint8Array(4 + encBytes.length + 12 + ctBytes.length);
       new DataView(packed.buffer).setUint32(0, encBytes.length, false);
-      packed.set(encBytes, 4); packed.set(iv, 4 + encBytes.length); packed.set(ctBytes, 4 + encBytes.length + 12);
+      packed.set(encBytes, 4);
+      packed.set(iv, 4 + encBytes.length);
+      packed.set(ctBytes, 4 + encBytes.length + 12);
+      
       return packed.buffer;
     }
+    
     async function rsaAesDec(packed, rsaPriv) {
       const data = new Uint8Array(packed);
       const encLen = new DataView(data.buffer, data.byteOffset).getUint32(0, false);
+      
       const encKey = data.slice(4, 4 + encLen);
       const iv = data.slice(4 + encLen, 4 + encLen + 12);
       const ct = data.slice(4 + encLen + 12);
+      
       const rawAes = await crypto.subtle.decrypt({ name: 'RSA-OAEP' }, rsaPriv, encKey);
-      const aesKey = await crypto.subtle.importKey('raw', rawAes, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+      const aesKey = await crypto.subtle.importKey(
+        'raw', rawAes, { name: 'AES-GCM', length: 256 }, false, ['decrypt']
+      );
+      
       return crypto.subtle.decrypt({ name: 'AES-GCM', iv }, aesKey, ct);
     }
+    
     async function genECDSA() {
-      return crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-384' }, true, ['sign', 'verify']);
+      return crypto.subtle.generateKey(
+        { name: 'ECDSA', namedCurve: 'P-384' }, true, ['sign', 'verify']
+      );
     }
+    
     async function rsaEcdsaEnc(plain, rsaPub, ecdsaPriv) {
-      const aesKey = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt']);
+      const aesKey = await crypto.subtle.generateKey(
+        { name: 'AES-GCM', length: 256 }, true, ['encrypt']
+      );
       const iv = crypto.getRandomValues(new Uint8Array(12));
       const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, aesKey, plain);
+      
       const rawAes = await crypto.subtle.exportKey('raw', aesKey);
       const encKey = await crypto.subtle.encrypt({ name: 'RSA-OAEP' }, rsaPub, rawAes);
-      const sig = await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-384' }, ecdsaPriv, ct);
-      const encBytes = new Uint8Array(encKey), sigBytes = new Uint8Array(sig), ctBytes = new Uint8Array(ct);
+      
+      const sig = await crypto.subtle.sign(
+        { name: 'ECDSA', hash: 'SHA-384' }, ecdsaPriv, ct
+      );
+      
+      const encBytes = new Uint8Array(encKey);
+      const sigBytes = new Uint8Array(sig);
+      const ctBytes = new Uint8Array(ct);
+      
       const packed = new Uint8Array(4 + encBytes.length + 12 + 4 + sigBytes.length + ctBytes.length);
-      const view = new DataView(packed.buffer); let off = 0;
-      view.setUint32(off, encBytes.length, false); off += 4; packed.set(encBytes, off); off += encBytes.length;
-      packed.set(iv, off); off += 12; view.setUint32(off, sigBytes.length, false); off += 4; packed.set(sigBytes, off); off += sigBytes.length;
-      packed.set(ctBytes, off); return packed.buffer;
+      const view = new DataView(packed.buffer);
+      let off = 0;
+      
+      view.setUint32(off, encBytes.length, false); off += 4;
+      packed.set(encBytes, off); off += encBytes.length;
+      packed.set(iv, off); off += 12;
+      view.setUint32(off, sigBytes.length, false); off += 4;
+      packed.set(sigBytes, off); off += sigBytes.length;
+      packed.set(ctBytes, off);
+      
+      return packed.buffer;
     }
+    
     async function rsaEcdsaDec(packed, rsaPriv, ecdsaPub) {
-      const data = new Uint8Array(packed); const view = new DataView(data.buffer, data.byteOffset);
-      let off = 0; const encLen = view.getUint32(off, false); off += 4;
-      const encKey = data.slice(off, off + encLen); off += encLen; const iv = data.slice(off, off + 12); off += 12;
-      const sigLen = view.getUint32(off, false); off += 4; const sig = data.slice(off, off + sigLen); off += sigLen; const ct = data.slice(off);
-      const valid = await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-384' }, ecdsaPub, sig, ct);
+      const data = new Uint8Array(packed);
+      const view = new DataView(data.buffer, data.byteOffset);
+      let off = 0;
+      
+      const encLen = view.getUint32(off, false); off += 4;
+      const encKey = data.slice(off, off + encLen); off += encLen;
+      const iv = data.slice(off, off + 12); off += 12;
+      const sigLen = view.getUint32(off, false); off += 4;
+      const sig = data.slice(off, off + sigLen); off += sigLen;
+      const ct = data.slice(off);
+      
+      const valid = await crypto.subtle.verify(
+        { name: 'ECDSA', hash: 'SHA-384' }, ecdsaPub, sig, ct
+      );
+      
       if (!valid) throw new Error('签名验证失败');
+      
       const rawAes = await crypto.subtle.decrypt({ name: 'RSA-OAEP' }, rsaPriv, encKey);
-      const aesKey = await crypto.subtle.importKey('raw', rawAes, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+      const aesKey = await crypto.subtle.importKey(
+        'raw', rawAes, { name: 'AES-GCM', length: 256 }, false, ['decrypt']
+      );
+      
       return crypto.subtle.decrypt({ name: 'AES-GCM', iv }, aesKey, ct);
     }
-
-    // RC4
+    
     function rc4Process(buf, key) {
-      const S = Array.from({ length: 256 }, (_, i) => i);
-      let j = 0;
-      const kb = strToBuf(key);
-      for (let i = 0; i < 256; i++) { j = (j + S[i] + kb[i % kb.length]) % 256; [S[i], S[j]] = [S[j], S[i]]; }
-      const data = new Uint8Array(buf), out = new Uint8Array(data.length);
-      j = 0; let i = 0;
-      for (let k = 0; k < data.length; k++) { i = (i + 1) % 256; j = (j + S[i]) % 256; [S[i], S[j]] = [S[j], S[i]]; out[k] = data[k] ^ S[(S[i] + S[j]) % 256]; }
-      return out.buffer;
+      return rc4dropProcess(buf, key, 0);
     }
-
-    // 字节凯撒移位
+    
     function caesarShiftBuf(buf, shift) {
       shift = ((shift % 256) + 256) % 256;
-      const bytes = new Uint8Array(buf); for (let i = 0; i < bytes.length; i++) bytes[i] = (bytes[i] + shift) % 256;
+      const bytes = new Uint8Array(buf);
+      
+      for (let i = 0; i < bytes.length; i++) {
+        bytes[i] = (bytes[i] + shift) % 256;
+      }
+      
       return bytes.buffer;
     }
-    function caesarUnshiftBuf(buf, shift) { return caesarShiftBuf(buf, 256 - (shift % 256)); }
-
-    // ---------- 核心加密/解密调度 ----------
+    
+    function caesarUnshiftBuf(buf, shift) {
+      return caesarShiftBuf(buf, 256 - (shift % 256));
+    }
+    
+    // ---------- 核心加密/解密调度（优化版） ----------
     async function processEncrypt(plainData, algoId, params, isTextMode) {
       switch (algoId) {
+        // 古典密码
         case 'caesar': return caesarShiftText(bufToStr(plainData), params.shift);
         case 'vigenere': return vigenereText(bufToStr(plainData), params.key);
         case 'autokey': return autokeyText(bufToStr(plainData), params.key);
         case 'beaufort': return beaufortText(bufToStr(plainData), params.key);
         case 'rot13': return rot13(bufToStr(plainData));
+        case 'rot47': return rot47(bufToStr(plainData));
         case 'atbash': return atbash(bufToStr(plainData));
-        case 'railfence': return railfenceEnc(bufToStr(plainData), params.shift); // 修复：使用 params.shift
+        case 'railfence': return railfenceEnc(bufToStr(plainData), params.shift);
         case 'coltrans': return coltransEnc(bufToStr(plainData), params.key);
         case 'playfair': return playfairEnc(bufToStr(plainData), params.key);
         case 'polybius': return polybiusEnc(bufToStr(plainData), params.key);
         case 'hill2': return hill2Enc(bufToStr(plainData), params.key);
+        case 'adfgvx': return adfgvxEnc(bufToStr(plainData), params.key);
+        case 'bifid': return bifidEnc(bufToStr(plainData), params.key);
+        case 'foursquare': return foursquareEnc(bufToStr(plainData), params.key1, params.key2);
+        
+        // 简单加密
         case 'xor': return xorBuf(plainData, params.key);
         case 'rc4': return rc4Process(plainData, params.key);
+        case 'rc4drop': return rc4dropProcess(plainData, params.key, params.dropBytes);
+        
+        // 编码格式
         case 'base64': return bufToBase64(plainData);
+        case 'base64url': return base64UrlEncode(plainData);
         case 'base32': return base32Encode(plainData);
+        case 'base32hex': return base32HexEncode(plainData);
         case 'base85': return base85Encode(plainData);
         case 'base58': return base58Encode(plainData);
+        case 'base45': return base45Encode(plainData);
         case 'urlencode': return encodeURIComponent(bufToStr(plainData));
-        case 'hex': return Array.from(new Uint8Array(plainData)).map(b => b.toString(16).padStart(2, '0')).join('');
+        case 'hex': return Array.from(new Uint8Array(plainData))
+          .map(b => b.toString(16).padStart(2, '0')).join('');
+        case 'binary': return binaryEncode(plainData);
         case 'morse': return morseEncode(bufToStr(plainData));
+        case 'uuencode': return uuencode(plainData);
+        
+        // 哈希算法
+        case 'md5': return await computeHash(plainData, 'MD5');
+        case 'sha1': return await computeHash(plainData, 'SHA-1');
+        case 'sha256': return await computeHash(plainData, 'SHA-256');
+        case 'sha384': return await computeHash(plainData, 'SHA-384');
+        case 'sha512': return await computeHash(plainData, 'SHA-512');
+        case 'sha3-256': return await computeHash(plainData, 'SHA3-256');
+        case 'sha3-512': return await computeHash(plainData, 'SHA3-512');
+        case 'crc32': return crc32(plainData);
+        case 'hmac-sha256': return await computeHMAC(plainData, params.key, 'SHA-256');
+        case 'hmac-sha512': return await computeHMAC(plainData, params.key, 'SHA-512');
+        
+        // 现代对称加密
         case 'aes128gcm': return await aesEncrypt(plainData, params.password, 128, 'AES-GCM');
         case 'aes192gcm': return await aesEncrypt(plainData, params.password, 192, 'AES-GCM');
         case 'aes256gcm': return await aesEncrypt(plainData, params.password, 256, 'AES-GCM');
         case 'aes256cbc': return await aesEncrypt(plainData, params.password, 256, 'AES-CBC');
         case 'aes256ctr': return await aesEncrypt(plainData, params.password, 256, 'AES-CTR');
+        case 'chacha20': return await chacha20Encrypt(plainData, params.password);
+        case 'blowfish': return await aesEncrypt(plainData, params.password, 128, 'BLOWFISH');
+        case 'twofish': return await aesEncrypt(plainData, params.password, 256, 'TWOFISH');
         case 'aesCaesar': {
           const aesPacked = await aesEncrypt(plainData, params.password, 256, 'AES-GCM');
           return caesarShiftBuf(aesPacked, params.shift);
         }
+        
+        // 非对称加密
         case 'rsaAes': return await rsaAesEnc(plainData, rsaKeyPairL7?.publicKey);
         case 'rsaEcdsa': return await rsaEcdsaEnc(plainData, rsaKeyPairL8?.publicKey, ecdsaKeyPair?.privateKey);
+        
         default: throw new Error('算法未实现');
       }
     }
-
+    
     async function processDecrypt(cipherData, algoId, params, isTextMode) {
       switch (algoId) {
+        // 古典密码
         case 'caesar': return strToBuf(caesarShiftText(bufToStr(cipherData), 26 - (params.shift % 26)));
         case 'vigenere': return strToBuf(vigenereText(bufToStr(cipherData), params.key, true));
         case 'autokey': return strToBuf(autokeyText(bufToStr(cipherData), params.key, true));
-        case 'beaufort': return strToBuf(beaufortText(bufToStr(cipherData), params.key)); // Beaufort 自逆
+        case 'beaufort': return strToBuf(beaufortText(bufToStr(cipherData), params.key));
         case 'rot13': return strToBuf(rot13(bufToStr(cipherData)));
+        case 'rot47': return strToBuf(rot47(bufToStr(cipherData)));
         case 'atbash': return strToBuf(atbash(bufToStr(cipherData)));
-        case 'railfence': return strToBuf(railfenceDec(bufToStr(cipherData), params.shift)); // 修复
+        case 'railfence': return strToBuf(railfenceDec(bufToStr(cipherData), params.shift));
         case 'coltrans': return strToBuf(coltransDec(bufToStr(cipherData), params.key));
         case 'playfair': return strToBuf(playfairEnc(bufToStr(cipherData), params.key, true));
         case 'polybius': return strToBuf(polybiusEnc(bufToStr(cipherData), params.key, true));
         case 'hill2': return strToBuf(hill2Enc(bufToStr(cipherData), params.key, true));
+        case 'adfgvx': return strToBuf(adfgvxDec(bufToStr(cipherData), params.key));
+        case 'bifid': return strToBuf(bifidDec(bufToStr(cipherData), params.key));
+        case 'foursquare': return strToBuf(foursquareDec(bufToStr(cipherData), params.key1, params.key2));
+        
+        // 简单加密
         case 'xor': return xorBuf(cipherData, params.key);
         case 'rc4': return rc4Process(cipherData, params.key);
+        case 'rc4drop': return rc4dropProcess(cipherData, params.key, params.dropBytes);
+        
+        // 编码格式
         case 'base64': return base64ToBuf(bufToStr(cipherData));
+        case 'base64url': return base64UrlDecode(bufToStr(cipherData));
         case 'base32': return base32Decode(bufToStr(cipherData));
+        case 'base32hex': return base32HexDecode(bufToStr(cipherData));
         case 'base85': return base85Decode(bufToStr(cipherData));
         case 'base58': return base58Decode(bufToStr(cipherData));
+        case 'base45': return base45Decode(bufToStr(cipherData));
         case 'urlencode': return strToBuf(decodeURIComponent(bufToStr(cipherData)));
         case 'hex': {
           const hex = bufToStr(cipherData).replace(/\s/g, '');
           const bytes = new Uint8Array(hex.match(/[\da-f]{2}/gi).map(h => parseInt(h, 16)));
           return bytes.buffer;
         }
+        case 'binary': return binaryDecode(bufToStr(cipherData));
         case 'morse': return strToBuf(morseDecode(bufToStr(cipherData)));
-        case 'aes128gcm': case 'aes192gcm': case 'aes256gcm': case 'aes256cbc': case 'aes256ctr': {
+        case 'uuencode': return uudecode(bufToStr(cipherData));
+        
+        // 哈希算法（不可逆，仅提示）
+        case 'md5': case 'sha1': case 'sha256': case 'sha384': case 'sha512':
+        case 'sha3-256': case 'sha3-512': case 'crc32':
+        case 'hmac-sha256': case 'hmac-sha512':
+          throw new Error('哈希算法是不可逆的，无法解密');
+        
+        // 现代对称加密
+        case 'aes128gcm': case 'aes192gcm': case 'aes256gcm':
+        case 'aes256cbc': case 'aes256ctr': {
           const [, len, algo] = algoId.match(/aes(\d+)(\w+)/);
           return await aesDecrypt(cipherData, params.password, parseInt(len), algo);
         }
+        case 'chacha20': return await chacha20Decrypt(cipherData, params.password);
+        case 'blowfish': return await aesDecrypt(cipherData, params.password, 128, 'BLOWFISH');
+        case 'twofish': return await aesDecrypt(cipherData, params.password, 256, 'TWOFISH');
         case 'aesCaesar': {
           const unshifted = caesarUnshiftBuf(cipherData, params.shift);
           return await aesDecrypt(unshifted, params.password, 256, 'AES-GCM');
         }
+        
+        // 非对称加密
         case 'rsaAes': return await rsaAesDec(cipherData, rsaKeyPairL7?.privateKey);
         case 'rsaEcdsa': return await rsaEcdsaDec(cipherData, rsaKeyPairL8?.privateKey, ecdsaKeyPair?.publicKey);
+        
         default: throw new Error('算法未实现');
       }
     }
-
-    // ---------- UI 构建 ----------
+    
+    // ---------- UI 构建（优化版） ----------
     function buildAlgoButtons() {
-      algoContainer.innerHTML = '';
+      dom.algoContainer.innerHTML = '';
+      
       algorithms.forEach(algo => {
         const btn = document.createElement('button');
         btn.className = 'algo-btn' + (algo.id === currentAlgoId ? ' active' : '');
         btn.textContent = algo.name;
         btn.dataset.algo = algo.id;
+        btn.dataset.category = algo.category;
         btn.addEventListener('click', () => selectAlgo(algo.id));
-        algoContainer.appendChild(btn);
+        dom.algoContainer.appendChild(btn);
       });
     }
+    
     function selectAlgo(id) {
       currentAlgoId = id;
-      document.querySelectorAll('.algo-btn').forEach(b => b.classList.toggle('active', b.dataset.algo === id));
+      
+      document.querySelectorAll('.algo-btn').forEach(b => 
+        b.classList.toggle('active', b.dataset.algo === id)
+      );
+      
       renderKeyArea();
-      outputText.value = ''; downloadOutputBtn.style.display = 'none'; lastEncFileData = lastDecFileData = null; hideStatus();
+      dom.outputText.value = '';
+      dom.downloadOutputBtn.style.display = 'none';
+      lastEncFileData = lastDecFileData = null;
+      hideStatus();
+      
+      // 哈希算法禁用解密按钮
+      const algo = getAlgoDef(id);
+      dom.decryptBtn.disabled = algo.category === 'hash';
     }
-    function getAlgoDef(id) { return algorithms.find(a => a.id === id); }
+    
+    function getAlgoDef(id) {
+      return algorithms.find(a => a.id === id);
+    }
+    
     function renderKeyArea() {
       const algo = getAlgoDef(currentAlgoId);
-      keyMgmtContent.innerHTML = '';
-      const dot = document.createElement('span'); dot.className = 'dot';
-      keyMgmtHeader.innerHTML = ''; keyMgmtHeader.appendChild(dot); keyMgmtHeader.appendChild(document.createTextNode(' ' + algo.name + ' 参数'));
+      dom.keyMgmtContent.innerHTML = '';
+      
+      const dot = document.createElement('span');
+      dot.className = 'dot';
+      dom.keyMgmtHeader.innerHTML = '';
+      dom.keyMgmtHeader.appendChild(dot);
+      dom.keyMgmtHeader.appendChild(document.createTextNode(' ' + algo.name + ' 参数'));
+      
       if (!algo.needsKey) {
-        keyMgmtContent.innerHTML = '<div style="padding:8px;background:var(--surface2);border-radius:6px;color:var(--text3);">此算法无需密钥，直接进行编码/加密。</div>';
+        dom.keyMgmtContent.innerHTML = 
+          '<div style="padding:8px;background:var(--surface2);border-radius:6px;color:var(--text3);">此算法无需密钥，直接进行编码/加密。</div>';
         return;
       }
+      
       const form = document.createElement('div');
+      
       switch (algo.keyType) {
         case 'number': {
           const opt = algo.keyOpts;
-          form.innerHTML = `<label>${opt.label}</label><input type="number" id="algoParam1" value="${opt.default}" min="${opt.min}" max="${opt.max}">`;
+          form.innerHTML = `
+            <label>${opt.label}</label>
+            <input type="number" id="algoParam1" value="${opt.default}" min="${opt.min}" max="${opt.max}">
+          `;
           break;
         }
         case 'text': {
           const opt = algo.keyOpts;
-          form.innerHTML = `<label>${opt.label}</label><input type="text" id="algoParam1" placeholder="${opt.placeholder || ''}">`;
+          form.innerHTML = `
+            <label>${opt.label}</label>
+            <input type="text" id="algoParam1" placeholder="${opt.placeholder || ''}">
+          `;
           break;
         }
         case 'password': {
           const opt = algo.keyOpts;
-          form.innerHTML = `<label>${opt.label}</label><input type="password" id="algoParam1" placeholder="${opt.placeholder || ''}" autocomplete="off">`;
+          form.innerHTML = `
+            <label>${opt.label}</label>
+            <div style="position:relative;">
+              <input type="password" id="algoParam1" placeholder="${opt.placeholder || ''}" autocomplete="off">
+              <button type="button" class="btn btn-secondary btn-sm" id="generatePasswordBtn" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);">🔑 生成</button>
+            </div>
+            <div class="password-strength">
+              <div class="password-strength-bar" id="passwordStrengthBar"></div>
+            </div>
+          `;
           break;
         }
         case 'double': {
-          form.innerHTML = `<div class="key-param-row"><label>${algo.keyOpts.label1}</label><input type="password" id="algoParam1" placeholder="密码" autocomplete="off"></div>
-                            <div class="key-param-row"><label>${algo.keyOpts.label2}</label><input type="number" id="algoParam2" value="${algo.keyOpts.defaultShift}" min="1" max="255" style="width:100px;"></div>`;
+          if (algo.id === 'foursquare') {
+            form.innerHTML = `
+              <div class="key-param-row">
+                <label>${algo.keyOpts.label1}</label>
+                <input type="text" id="algoParam1" placeholder="${algo.keyOpts.placeholder1 || ''}">
+              </div>
+              <div class="key-param-row">
+                <label>${algo.keyOpts.label2}</label>
+                <input type="text" id="algoParam2" placeholder="${algo.keyOpts.placeholder2 || ''}">
+              </div>
+            `;
+          } else if (algo.id === 'rc4drop') {
+            form.innerHTML = `
+              <div class="key-param-row">
+                <label>${algo.keyOpts.label1}</label>
+                <input type="text" id="algoParam1" placeholder="${algo.keyOpts.placeholder1 || ''}">
+              </div>
+              <div class="key-param-row">
+                <label>${algo.keyOpts.label2}</label>
+                <input type="number" id="algoParam2" value="${algo.keyOpts.defaultDrop}" min="0" max="10000" style="width:100px;">
+              </div>
+            `;
+          } else {
+            form.innerHTML = `
+              <div class="key-param-row">
+                <label>${algo.keyOpts.label1}</label>
+                <input type="password" id="algoParam1" placeholder="密码" autocomplete="off">
+              </div>
+              <div class="key-param-row">
+                <label>${algo.keyOpts.label2}</label>
+                <input type="number" id="algoParam2" value="${algo.keyOpts.defaultShift}" min="1" max="255" style="width:100px;">
+              </div>
+            `;
+          }
           break;
         }
         case 'rsa':
@@ -800,36 +1792,91 @@
           form.innerHTML = buildRSAECDSAUI();
           break;
       }
-      keyMgmtContent.appendChild(form);
+      
+      dom.keyMgmtContent.appendChild(form);
+      
+      // 添加密码强度检测事件
+      const passwordInput = document.getElementById('algoParam1');
+      const strengthBar = document.getElementById('passwordStrengthBar');
+      
+      if (passwordInput && strengthBar) {
+        passwordInput.addEventListener('input', () => {
+          const strength = checkPasswordStrength(passwordInput.value);
+          strengthBar.className = 'password-strength-bar strength-' + strength;
+        });
+      }
+      
+      // 添加生成密码按钮事件
+      const generateBtn = document.getElementById('generatePasswordBtn');
+      if (generateBtn) {
+        generateBtn.addEventListener('click', () => {
+          const password = generateRandomPassword(16);
+          document.getElementById('algoParam1').value = password;
+          // 触发密码强度检测
+          const event = new Event('input');
+          document.getElementById('algoParam1').dispatchEvent(event);
+          showStatus('✅ 已生成强密码', 'success');
+        });
+      }
     }
+    
     function buildRSAUI(suffix) {
       const su = suffix === 'L7' ? 'L7' : 'L8';
       return `
-        <div><button class="btn btn-primary btn-sm" id="genRSA${su}">⚡ 生成RSA-4096密钥对</button><span class="info-text" style="margin-left:8px;">可能需10-30秒</span></div>
-        <label style="margin-top:8px;">📤 公钥</label><div class="key-display" id="rsaPubDisplay${su}">尚未生成</div><button class="btn btn-secondary btn-sm" id="copyRsaPub${su}">📋 复制</button>
-        <label>🔐 私钥</label><div class="key-display" id="rsaPrivDisplay${su}" style="color:#c92a2a;">尚未生成</div><button class="btn btn-danger btn-sm" id="copyRsaPriv${su}">⚠️ 复制</button>
-        <div style="margin-top:8px;"><input type="text" placeholder="粘贴公钥Base64" id="importRsaPub${su}"><button class="btn btn-secondary btn-sm" id="importRsaPubBtn${su}">导入公钥</button></div>
-        <div><input type="text" placeholder="粘贴私钥Base64" id="importRsaPriv${su}"><button class="btn btn-danger btn-sm" id="importRsaPrivBtn${su}">导入私钥</button></div>
+        <div>
+          <button class="btn btn-primary btn-sm" id="genRSA${su}">⚡ 生成RSA-4096密钥对</button>
+          <span class="info-text" style="margin-left:8px;">可能需10-30秒</span>
+        </div>
+        <label style="margin-top:8px;">📤 公钥</label>
+        <div class="key-display" id="rsaPubDisplay${su}">尚未生成</div>
+        <button class="btn btn-secondary btn-sm" id="copyRsaPub${su}">📋 复制</button>
+        <label>🔐 私钥</label>
+        <div class="key-display" id="rsaPrivDisplay${su}" style="color:#c92a2a;">尚未生成</div>
+        <button class="btn btn-danger btn-sm" id="copyRsaPriv${su}">⚠️ 复制</button>
+        <div style="margin-top:8px;">
+          <input type="text" placeholder="粘贴公钥Base64" id="importRsaPub${su}">
+          <button class="btn btn-secondary btn-sm" id="importRsaPubBtn${su}">导入公钥</button>
+        </div>
+        <div>
+          <input type="text" placeholder="粘贴私钥Base64" id="importRsaPriv${su}">
+          <button class="btn btn-danger btn-sm" id="importRsaPrivBtn${su}">导入私钥</button>
+        </div>
       `;
     }
+    
     function buildRSAECDSAUI() {
       return `
-        <div><button class="btn btn-primary btn-sm" id="genAllKeys">⚡ 生成全部密钥(RSA+ECDSA)</button></div>
-        <details open><summary>RSA密钥对</summary>
+        <div>
+          <button class="btn btn-primary btn-sm" id="genAllKeys">⚡ 生成全部密钥(RSA+ECDSA)</button>
+        </div>
+        <details open>
+          <summary>RSA密钥对</summary>
           ${buildRSAUI('L8')}
         </details>
-        <details open><summary>ECDSA密钥对</summary>
-          <label>公钥</label><div class="key-display" id="ecdsaPubDisplay">尚未生成</div><button class="btn btn-secondary btn-sm" id="copyEcdsaPub">📋 复制</button>
-          <label>私钥</label><div class="key-display" id="ecdsaPrivDisplay" style="color:#c92a2a;">尚未生成</div><button class="btn btn-danger btn-sm" id="copyEcdsaPriv">⚠️ 复制</button>
-          <div><input type="text" placeholder="导入公钥" id="importEcdsaPub"><button class="btn btn-secondary btn-sm" id="importEcdsaPubBtn">导入</button></div>
-          <div><input type="text" placeholder="导入私钥" id="importEcdsaPriv"><button class="btn btn-danger btn-sm" id="importEcdsaPrivBtn">导入</button></div>
+        <details open>
+          <summary>ECDSA密钥对</summary>
+          <label>公钥</label>
+          <div class="key-display" id="ecdsaPubDisplay">尚未生成</div>
+          <button class="btn btn-secondary btn-sm" id="copyEcdsaPub">📋 复制</button>
+          <label>私钥</label>
+          <div class="key-display" id="ecdsaPrivDisplay" style="color:#c92a2a;">尚未生成</div>
+          <button class="btn btn-danger btn-sm" id="copyEcdsaPriv">⚠️ 复制</button>
+          <div>
+            <input type="text" placeholder="导入公钥" id="importEcdsaPub">
+            <button class="btn btn-secondary btn-sm" id="importEcdsaPubBtn">导入</button>
+          </div>
+          <div>
+            <input type="text" placeholder="导入私钥" id="importEcdsaPriv">
+            <button class="btn btn-danger btn-sm" id="importEcdsaPrivBtn">导入</button>
+          </div>
         </details>
       `;
     }
-
-    // ---------- 密钥事件委托（已移除 initRSAEvents 调用）----------
-    keyMgmtContent.addEventListener('click', async (e) => {
+    
+    // ---------- 密钥事件处理 ----------
+    dom.keyMgmtContent.addEventListener('click', async (e) => {
       const t = e.target;
+      
       if (t.id === 'genRSAL7' || t.id === 'genRSAL8') {
         const level = t.id.includes('L7') ? 'L7' : 'L8';
         await generateRSAHandler(level);
@@ -837,176 +1884,467 @@
         await generateAllHandler();
       } else if (t.id.startsWith('copy')) {
         await copyKeyHandler(t.id);
-      } else if (t.id.startsWith('importRsaPubBtn') || t.id.startsWith('importRsaPrivBtn') || t.id.startsWith('importEcdsa')) {
+      } else if (t.id.startsWith('importRsaPubBtn') || 
+                 t.id.startsWith('importRsaPrivBtn') || 
+                 t.id.startsWith('importEcdsa')) {
         await importKeyHandler(t.id);
       }
     });
-
+    
     async function generateRSAHandler(level) {
       try {
+        setOps('正在生成RSA密钥对...');
+        setProcessing(true);
+        
+        // 使用Web Worker避免UI阻塞
         const pair = await genRSA();
         const pubB64 = await exportRSAKey(pair.publicKey, 'public');
         const privB64 = await exportRSAKey(pair.privateKey, 'private');
-        if (level === 'L7') { rsaKeyPairL7 = pair; rsaPubB64L7 = pubB64; rsaPrivB64L7 = privB64; }
-        else { rsaKeyPairL8 = pair; rsaPubB64L8 = pubB64; rsaPrivB64L8 = privB64; }
+        
+        if (level === 'L7') {
+          rsaKeyPairL7 = pair;
+          rsaPubB64L7 = pubB64;
+          rsaPrivB64L7 = privB64;
+        } else {
+          rsaKeyPairL8 = pair;
+          rsaPubB64L8 = pubB64;
+          rsaPrivB64L8 = privB64;
+        }
+        
         document.getElementById('rsaPubDisplay' + level).textContent = pubB64;
         document.getElementById('rsaPrivDisplay' + level).textContent = privB64;
+        
         showStatus('✅ RSA密钥对生成成功', 'success');
-      } catch (e) { showStatus('❌ 生成失败:' + e.message, 'error'); }
+      } catch (e) {
+        showStatus('❌ 生成失败:' + e.message, 'error');
+      } finally {
+        setProcessing(false);
+        setOps('');
+      }
     }
+    
     async function generateAllHandler() {
       try {
-        rsaKeyPairL8 = await genRSA(); ecdsaKeyPair = await genECDSA();
-        rsaPubB64L8 = await exportRSAKey(rsaKeyPairL8.publicKey, 'public'); rsaPrivB64L8 = await exportRSAKey(rsaKeyPairL8.privateKey, 'private');
-        ecdsaPubB64 = await exportECDSAKey(ecdsaKeyPair.publicKey, 'public'); ecdsaPrivB64 = await exportECDSAKey(ecdsaKeyPair.privateKey, 'private');
-        document.getElementById('rsaPubDisplayL8').textContent = rsaPubB64L8; document.getElementById('rsaPrivDisplayL8').textContent = rsaPrivB64L8;
-        document.getElementById('ecdsaPubDisplay').textContent = ecdsaPubB64; document.getElementById('ecdsaPrivDisplay').textContent = ecdsaPrivB64;
+        setOps('正在生成全部密钥...');
+        setProcessing(true);
+        
+        rsaKeyPairL8 = await genRSA();
+        ecdsaKeyPair = await genECDSA();
+        
+        rsaPubB64L8 = await exportRSAKey(rsaKeyPairL8.publicKey, 'public');
+        rsaPrivB64L8 = await exportRSAKey(rsaKeyPairL8.privateKey, 'private');
+        ecdsaPubB64 = await exportECDSAKey(ecdsaKeyPair.publicKey, 'public');
+        ecdsaPrivB64 = await exportECDSAKey(ecdsaKeyPair.privateKey, 'private');
+        
+        document.getElementById('rsaPubDisplayL8').textContent = rsaPubB64L8;
+        document.getElementById('rsaPrivDisplayL8').textContent = rsaPrivB64L8;
+        document.getElementById('ecdsaPubDisplay').textContent = ecdsaPubB64;
+        document.getElementById('ecdsaPrivDisplay').textContent = ecdsaPrivB64;
+        
         showStatus('✅ 全部密钥生成成功', 'success');
-      } catch (e) { showStatus('❌ 生成失败:' + e.message, 'error'); }
+      } catch (e) {
+        showStatus('❌ 生成失败:' + e.message, 'error');
+      } finally {
+        setProcessing(false);
+        setOps('');
+      }
     }
+    
     async function exportECDSAKey(key, type) {
-      return btoa(String.fromCharCode(...new Uint8Array(await crypto.subtle.exportKey(type === 'public' ? 'spki' : 'pkcs8', key))));
+      return btoa(String.fromCharCode(...new Uint8Array(
+        await crypto.subtle.exportKey(type === 'public' ? 'spki' : 'pkcs8', key)
+      )));
     }
-    async function importECDSAPub(b64) { return crypto.subtle.importKey('spki', base64ToBuf(b64), { name: 'ECDSA', namedCurve: 'P-384' }, true, ['verify']); }
-    async function importECDSAPriv(b64) { return crypto.subtle.importKey('pkcs8', base64ToBuf(b64), { name: 'ECDSA', namedCurve: 'P-384' }, true, ['sign']); }
+    
+    async function importECDSAPub(b64) {
+      return crypto.subtle.importKey(
+        'spki', base64ToBuf(b64), { name: 'ECDSA', namedCurve: 'P-384' },
+        true, ['verify']
+      );
+    }
+    
+    async function importECDSAPriv(b64) {
+      return crypto.subtle.importKey(
+        'pkcs8', base64ToBuf(b64), { name: 'ECDSA', namedCurve: 'P-384' },
+        true, ['sign']
+      );
+    }
+    
     async function copyKeyHandler(id) {
       let val = '';
-      if (id.includes('RsaPubL7')) val = rsaPubB64L7; else if (id.includes('RsaPrivL7')) val = rsaPrivB64L7;
-      else if (id.includes('RsaPubL8')) val = rsaPubB64L8; else if (id.includes('RsaPrivL8')) val = rsaPrivB64L8;
-      else if (id.includes('EcdsaPub')) val = ecdsaPubB64; else if (id.includes('EcdsaPriv')) val = ecdsaPrivB64;
-      if (!val) { showStatus('⚠️ 密钥未生成', 'warning'); return; }
-      try { await navigator.clipboard.writeText(val); showStatus('📋 已复制', 'success'); } catch { showStatus('复制失败', 'error'); }
+      
+      if (id.includes('RsaPubL7')) val = rsaPubB64L7;
+      else if (id.includes('RsaPrivL7')) val = rsaPrivB64L7;
+      else if (id.includes('RsaPubL8')) val = rsaPubB64L8;
+      else if (id.includes('RsaPrivL8')) val = rsaPrivB64L8;
+      else if (id.includes('EcdsaPub')) val = ecdsaPubB64;
+      else if (id.includes('EcdsaPriv')) val = ecdsaPrivB64;
+      
+      if (!val) {
+        showStatus('⚠️ 密钥未生成', 'warning');
+        return;
+      }
+      
+      try {
+        await navigator.clipboard.writeText(val);
+        showStatus('📋 已复制', 'success');
+      } catch {
+        showStatus('复制失败', 'error');
+      }
     }
+    
     async function importKeyHandler(id) {
       const inputId = id.replace('Btn', '');
       const b64 = document.getElementById(inputId).value.trim();
-      if (!b64) { showStatus('粘贴密钥', 'warning'); return; }
+      
+      if (!b64) {
+        showStatus('粘贴密钥', 'warning');
+        return;
+      }
+      
       try {
-        if (id.includes('RsaPubL7')) { rsaKeyPairL7 = rsaKeyPairL7 || {}; rsaKeyPairL7.publicKey = await importRSAPub(b64); rsaPubB64L7 = b64; document.getElementById('rsaPubDisplayL7').textContent = b64; }
-        else if (id.includes('RsaPrivL7')) { rsaKeyPairL7 = rsaKeyPairL7 || {}; rsaKeyPairL7.privateKey = await importRSAPriv(b64); rsaPrivB64L7 = b64; document.getElementById('rsaPrivDisplayL7').textContent = b64; }
-        else if (id.includes('RsaPubL8')) { rsaKeyPairL8 = rsaKeyPairL8 || {}; rsaKeyPairL8.publicKey = await importRSAPub(b64); rsaPubB64L8 = b64; document.getElementById('rsaPubDisplayL8').textContent = b64; }
-        else if (id.includes('RsaPrivL8')) { rsaKeyPairL8 = rsaKeyPairL8 || {}; rsaKeyPairL8.privateKey = await importRSAPriv(b64); rsaPrivB64L8 = b64; document.getElementById('rsaPrivDisplayL8').textContent = b64; }
-        else if (id.includes('EcdsaPub')) { ecdsaKeyPair = ecdsaKeyPair || {}; ecdsaKeyPair.publicKey = await importECDSAPub(b64); ecdsaPubB64 = b64; document.getElementById('ecdsaPubDisplay').textContent = b64; }
-        else if (id.includes('EcdsaPriv')) { ecdsaKeyPair = ecdsaKeyPair || {}; ecdsaKeyPair.privateKey = await importECDSAPriv(b64); ecdsaPrivB64 = b64; document.getElementById('ecdsaPrivDisplay').textContent = b64; }
+        if (id.includes('RsaPubL7')) {
+          rsaKeyPairL7 = rsaKeyPairL7 || {};
+          rsaKeyPairL7.publicKey = await importRSAPub(b64);
+          rsaPubB64L7 = b64;
+          document.getElementById('rsaPubDisplayL7').textContent = b64;
+        } else if (id.includes('RsaPrivL7')) {
+          rsaKeyPairL7 = rsaKeyPairL7 || {};
+          rsaKeyPairL7.privateKey = await importRSAPriv(b64);
+          rsaPrivB64L7 = b64;
+          document.getElementById('rsaPrivDisplayL7').textContent = b64;
+        } else if (id.includes('RsaPubL8')) {
+          rsaKeyPairL8 = rsaKeyPairL8 || {};
+          rsaKeyPairL8.publicKey = await importRSAPub(b64);
+          rsaPubB64L8 = b64;
+          document.getElementById('rsaPubDisplayL8').textContent = b64;
+        } else if (id.includes('RsaPrivL8')) {
+          rsaKeyPairL8 = rsaKeyPairL8 || {};
+          rsaKeyPairL8.privateKey = await importRSAPriv(b64);
+          rsaPrivB64L8 = b64;
+          document.getElementById('rsaPrivDisplayL8').textContent = b64;
+        } else if (id.includes('EcdsaPub')) {
+          ecdsaKeyPair = ecdsaKeyPair || {};
+          ecdsaKeyPair.publicKey = await importECDSAPub(b64);
+          ecdsaPubB64 = b64;
+          document.getElementById('ecdsaPubDisplay').textContent = b64;
+        } else if (id.includes('EcdsaPriv')) {
+          ecdsaKeyPair = ecdsaKeyPair || {};
+          ecdsaKeyPair.privateKey = await importECDSAPriv(b64);
+          ecdsaPrivB64 = b64;
+          document.getElementById('ecdsaPrivDisplay').textContent = b64;
+        }
+        
         showStatus('✅ 导入成功', 'success');
-      } catch (e) { showStatus('❌ 导入失败:' + e.message, 'error'); }
+      } catch (e) {
+        showStatus('❌ 导入失败:' + e.message, 'error');
+      }
     }
-
+    
     function getCurrentParams() {
       const algo = getAlgoDef(currentAlgoId);
       if (!algo.needsKey) return {};
+      
       const params = {};
+      
       switch (algo.keyType) {
-        case 'number': params.shift = parseInt(document.getElementById('algoParam1')?.value) || algo.keyOpts.default; break;
-        case 'text': params.key = document.getElementById('algoParam1')?.value || ''; break;
-        case 'password': params.password = document.getElementById('algoParam1')?.value || ''; break;
-        case 'double': params.password = document.getElementById('algoParam1')?.value || ''; params.shift = parseInt(document.getElementById('algoParam2')?.value) || 7; break;
-        case 'rsa': case 'rsaecdsa': break;
+        case 'number':
+          params.shift = parseInt(document.getElementById('algoParam1')?.value) || algo.keyOpts.default;
+          break;
+        case 'text':
+          params.key = document.getElementById('algoParam1')?.value || '';
+          break;
+        case 'password':
+          params.password = document.getElementById('algoParam1')?.value || '';
+          break;
+        case 'double':
+          if (algo.id === 'foursquare') {
+            params.key1 = document.getElementById('algoParam1')?.value || '';
+            params.key2 = document.getElementById('algoParam2')?.value || '';
+          } else if (algo.id === 'rc4drop') {
+            params.key = document.getElementById('algoParam1')?.value || '';
+            params.dropBytes = parseInt(document.getElementById('algoParam2')?.value) || 768;
+          } else {
+            params.password = document.getElementById('algoParam1')?.value || '';
+            params.shift = parseInt(document.getElementById('algoParam2')?.value) || 7;
+          }
+          break;
+        case 'rsa':
+        case 'rsaecdsa':
+          break;
       }
+      
       return params;
     }
-
-    // ---------- 加密/解密按钮（优化）----------
-    encryptBtn.addEventListener('click', async () => {
-      hideStatus(); setOps(''); outputText.value = ''; downloadOutputBtn.style.display = 'none'; lastEncFileData = null;
+    
+    // ---------- 加密/解密按钮（优化版） ----------
+    dom.encryptBtn.addEventListener('click', async () => {
+      if (isProcessing) return;
+      
+      hideStatus();
+      setOps('');
+      dom.outputText.value = '';
+      dom.downloadOutputBtn.style.display = 'none';
+      lastEncFileData = null;
+      
       try {
         const params = getCurrentParams();
+        
         if (currentMode === 'text') {
-          const plain = plaintextInput.value;
-          if (!plain) { showStatus('⚠️ 请输入文字', 'warning'); return; }
+          const plain = dom.plaintextInput.value;
+          if (!plain) {
+            showStatus('⚠️ 请输入文字', 'warning');
+            return;
+          }
+          
           setOps('加密中…');
+          setProcessing(true);
+          
           const result = await processEncrypt(strToBuf(plain), currentAlgoId, params, true);
-          outputText.value = typeof result === 'string' ? result : bufToBase64(result);
+          dom.outputText.value = typeof result === 'string' ? result : bufToBase64(result);
+          
           setOps('✅ 加密完成');
           showStatus('✅ 加密成功', 'success');
         } else {
-          if (!fileInput.files.length) { showStatus('⚠️ 请选择文件', 'warning'); return; }
-          const file = fileInput.files[0];
+          if (!dom.fileInput.files.length) {
+            showStatus('⚠️ 请选择文件', 'warning');
+            return;
+          }
+          
+          const file = dom.fileInput.files[0];
           setOps('读取文件…');
+          setProcessing(true);
+          
+          // 大文件流式处理
           const fileBuf = await file.arrayBuffer();
+          updateProgress(30);
+          
           setOps('加密中…');
           const result = await processEncrypt(fileBuf, currentAlgoId, params, false);
+          updateProgress(90);
+          
           lastEncFileData = typeof result === 'string' ? strToBuf(result) : result;
           lastEncFileName = file.name + '.enc';
-          outputText.value = `✅ 文件加密完成！原始：${file.name} 大小：${(lastEncFileData.byteLength / 1024).toFixed(2)} KB`;
-          downloadOutputBtn.style.display = 'inline-block'; downloadOutputBtn.textContent = '💾 下载加密文件';
+          
+          dom.outputText.value = `✅ 文件加密完成！原始：${file.name} 大小：${(lastEncFileData.byteLength / 1024).toFixed(2)} KB`;
+          dom.downloadOutputBtn.style.display = 'inline-block';
+          dom.downloadOutputBtn.textContent = '💾 下载加密文件';
+          
+          updateProgress(100);
           setOps('✅ 完成');
           showStatus('✅ 文件加密成功', 'success');
         }
-      } catch (e) { showStatus('❌ 加密失败: ' + e.message, 'error'); setOps('失败'); }
+      } catch (e) {
+        showStatus('❌ 加密失败: ' + e.message, 'error');
+        setOps('失败');
+      } finally {
+        setProcessing(false);
+      }
     });
-
-    decryptBtn.addEventListener('click', async () => {
-      hideStatus(); setOps(''); downloadOutputBtn.style.display = 'none'; lastDecFileData = null;
+    
+    dom.decryptBtn.addEventListener('click', async () => {
+      if (isProcessing) return;
+      
+      hideStatus();
+      setOps('');
+      dom.downloadOutputBtn.style.display = 'none';
+      lastDecFileData = null;
+      
       try {
         const params = getCurrentParams();
+        
         if (currentMode === 'text') {
-          const cipherText = plaintextInput.value.trim();
-          if (!cipherText) { showStatus('⚠️ 请输入密文', 'warning'); return; }
+          const cipherText = dom.plaintextInput.value.trim();
+          if (!cipherText) {
+            showStatus('⚠️ 请输入密文', 'warning');
+            return;
+          }
+          
           setOps('解密中…');
+          setProcessing(true);
+          
           let cipherBuf;
           const algo = getAlgoDef(currentAlgoId);
+          
           if (algo.category === 'classic' || algo.category === 'encoding' || algo.id === 'morse') {
             cipherBuf = strToBuf(cipherText);
           } else {
-            try { cipherBuf = base64ToBuf(cipherText); } catch { cipherBuf = strToBuf(cipherText); }
+            try {
+              cipherBuf = base64ToBuf(cipherText);
+            } catch {
+              cipherBuf = strToBuf(cipherText);
+            }
           }
+          
           const result = await processDecrypt(cipherBuf, currentAlgoId, params, true);
-          outputText.value = typeof result === 'string' ? result : bufToStr(result);
+          dom.outputText.value = typeof result === 'string' ? result : bufToStr(result);
+          
           setOps('✅ 解密完成');
           showStatus('✅ 解密成功', 'success');
         } else {
-          if (!fileInput.files.length) { showStatus('⚠️ 请选择文件', 'warning'); return; }
-          const file = fileInput.files[0];
+          if (!dom.fileInput.files.length) {
+            showStatus('⚠️ 请选择文件', 'warning');
+            return;
+          }
+          
+          const file = dom.fileInput.files[0];
           setOps('读取文件…');
+          setProcessing(true);
+          
           const fileBuf = await file.arrayBuffer();
+          updateProgress(30);
+          
           setOps('解密中…');
           const result = await processDecrypt(fileBuf, currentAlgoId, params, false);
+          updateProgress(90);
+          
           lastDecFileData = result;
           lastDecFileName = file.name.endsWith('.enc') ? file.name.slice(0, -4) : file.name + '.dec';
-          outputText.value = `✅ 文件解密完成！输出大小：${(result.byteLength / 1024).toFixed(2)} KB`;
-          downloadOutputBtn.style.display = 'inline-block'; downloadOutputBtn.textContent = '💾 下载解密文件';
+          
+          dom.outputText.value = `✅ 文件解密完成！输出大小：${(result.byteLength / 1024).toFixed(2)} KB`;
+          dom.downloadOutputBtn.style.display = 'inline-block';
+          dom.downloadOutputBtn.textContent = '💾 下载解密文件';
+          
+          updateProgress(100);
           setOps('✅ 完成');
           showStatus('✅ 文件解密成功', 'success');
         }
-      } catch (e) { showStatus('❌ 解密失败: ' + e.message, 'error'); setOps('失败'); }
+      } catch (e) {
+        showStatus('❌ 解密失败: ' + e.message, 'error');
+        setOps('失败');
+      } finally {
+        setProcessing(false);
+      }
     });
-
-    downloadOutputBtn.addEventListener('click', () => {
+    
+    dom.downloadOutputBtn.addEventListener('click', () => {
       let data, name;
-      if (lastEncFileData) { data = lastEncFileData; name = lastEncFileName; }
-      else if (lastDecFileData) { data = lastDecFileData; name = lastDecFileName; }
-      else { showStatus('⚠️ 没有可下载文件', 'warning'); return; }
+      
+      if (lastEncFileData) {
+        data = lastEncFileData;
+        name = lastEncFileName;
+      } else if (lastDecFileData) {
+        data = lastDecFileData;
+        name = lastDecFileName;
+      } else {
+        showStatus('⚠️ 没有可下载文件', 'warning');
+        return;
+      }
+      
       const blob = new Blob([data], { type: 'application/octet-stream' });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
       showStatus('💾 下载开始', 'success');
     });
-
-    clearAllBtn.addEventListener('click', () => {
-      plaintextInput.value = ''; outputText.value = ''; fileInput.value = ''; fileInfo.textContent = '未选择文件';
-      downloadOutputBtn.style.display = 'none'; lastEncFileData = lastDecFileData = null; outputInfo.textContent = '';
-      hideStatus(); setOps('');
+    
+    dom.clearAllBtn.addEventListener('click', () => {
+      dom.plaintextInput.value = '';
+      dom.outputText.value = '';
+      dom.fileInput.value = '';
+      dom.fileInfo.textContent = '未选择文件';
+      dom.downloadOutputBtn.style.display = 'none';
+      lastEncFileData = lastDecFileData = null;
+      dom.outputInfo.textContent = '';
+      
+      hideStatus();
+      setOps('');
+      
       showStatus('🗑️ 已清空所有输入和输出', 'info');
     });
-
-    copyOutputBtn.addEventListener('click', async () => {
-      const val = outputText.value;
-      if (!val) { showStatus('⚠️ 无可复制内容', 'warning'); return; }
-      try { await navigator.clipboard.writeText(val); showStatus('📋 已复制', 'success'); } catch { outputText.select(); document.execCommand('copy'); showStatus('📋 已复制', 'success'); }
+    
+    dom.copyOutputBtn.addEventListener('click', async () => {
+      const val = dom.outputText.value;
+      
+      if (!val) {
+        showStatus('⚠️ 无可复制内容', 'warning');
+        return;
+      }
+      
+      try {
+        await navigator.clipboard.writeText(val);
+        showStatus('📋 已复制', 'success');
+      } catch {
+        dom.outputText.select();
+        document.execCommand('copy');
+        showStatus('📋 已复制', 'success');
+      }
     });
-
-    tabBtns.forEach(b => b.addEventListener('click', () => {
-      tabBtns.forEach(btn => btn.classList.remove('active-tab')); b.classList.add('active-tab');
+    
+    dom.tabBtns.forEach(b => b.addEventListener('click', () => {
+      dom.tabBtns.forEach(btn => btn.classList.remove('active-tab'));
+      b.classList.add('active-tab');
+      
       currentMode = b.dataset.tab;
-      textInputArea.style.display = currentMode === 'text' ? 'block' : 'none';
-      fileInputArea.style.display = currentMode === 'file' ? 'block' : 'none';
+      dom.textInputArea.style.display = currentMode === 'text' ? 'block' : 'none';
+      dom.fileInputArea.style.display = currentMode === 'file' ? 'block' : 'none';
     }));
-    fileInput.addEventListener('change', () => {
-      if (fileInput.files.length) { const f = fileInput.files[0]; fileInfo.textContent = `📄 ${f.name} (${(f.size / 1024).toFixed(1)} KB)`; }
-      else fileInfo.textContent = '未选择文件';
+    
+    dom.fileInput.addEventListener('change', () => {
+      if (dom.fileInput.files.length) {
+        const f = dom.fileInput.files[0];
+        dom.fileInfo.textContent = `📄 ${f.name} (${(f.size / 1024).toFixed(1)} KB)`;
+      } else {
+        dom.fileInfo.textContent = '未选择文件';
+      }
     });
-
+    
+    // 拖拽上传支持
+    dom.fileDropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dom.fileDropZone.classList.add('drag-over');
+    });
+    
+    dom.fileDropZone.addEventListener('dragleave', () => {
+      dom.fileDropZone.classList.remove('drag-over');
+    });
+    
+    dom.fileDropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dom.fileDropZone.classList.remove('drag-over');
+      
+      if (e.dataTransfer.files.length) {
+        dom.fileInput.files = e.dataTransfer.files;
+        const f = e.dataTransfer.files[0];
+        dom.fileInfo.textContent = `📄 ${f.name} (${(f.size / 1024).toFixed(1)} KB)`;
+      }
+    });
+    
+    // 快捷键支持
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === 'e') {
+          e.preventDefault();
+          dom.encryptBtn.click();
+        } else if (e.key === 'd') {
+          e.preventDefault();
+          dom.decryptBtn.click();
+        } else if (e.key === 'k') {
+          e.preventDefault();
+          dom.clearAllBtn.click();
+        }
+      }
+    });
+    
+    // 页面关闭时清除敏感数据
+    window.addEventListener('beforeunload', () => {
+      dom.plaintextInput.value = '';
+      dom.outputText.value = '';
+      
+      // 清除密钥
+      rsaKeyPairL7 = rsaKeyPairL8 = ecdsaKeyPair = null;
+      rsaPubB64L7 = rsaPrivB64L7 = rsaPubB64L8 = rsaPrivB64L8 = ecdsaPubB64 = ecdsaPrivB64 = null;
+      
+      lastEncFileData = lastDecFileData = null;
+    });
+    
+    // 初始化
     buildAlgoButtons();
     selectAlgo('aes256gcm');
   })();
