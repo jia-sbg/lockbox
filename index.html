@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>高级加密工具 · 八级算法</title>
+  <style>
+    :root {
+      --bg: #f8f9fa;
+      --surface: #ffffff;
+      --surface2: #f1f3f5;
+      --text: #1a1a2e;
+      --text2: #495057;
+      --text3: #6c757d;
+      --border: #dee2e6;
+      --border2: #ced4da;
+      --accent: #1a56db;
+      --accent-hover: #1647b8;
+      --accent-light: #e8f0fe;
+      --danger: #c92a2a;
+      --danger-light: #fff5f5;
+      --warning: #e67700;
+      --warning-light: #fff9f0;
+      --success: #2b8a3e;
+      --success-light: #f0fdf4;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+      --radius: 8px;
+      --radius-sm: 6px;
+      --font-mono: 'SF Mono', 'Cascadia Code', 'Consolas', 'Monaco', 'Courier New', monospace;
+      --transition: 0.2s ease;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container { max-width: 960px; margin:0 auto; padding:24px 20px 48px; }
+    .header { text-align:center; padding:32px 0 24px; border-bottom:1px solid var(--border); margin-bottom:28px; }
+    .header .icon { display:inline-block; width:48px; height:48px; background:var(--accent-light); border-radius:12px; margin-bottom:12px; line-height:48px; font-size:24px; }
+    .header h1 { font-size:1.75rem; font-weight:700; letter-spacing:-0.02em; color:var(--text); margin:0; }
+    .header .subtitle { font-size:0.9rem; color:var(--text3); margin-top:4px; }
+    .card {
+      background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+      padding:24px; margin-bottom:16px; box-shadow:var(--shadow-sm);
+    }
+    .card-header { font-weight:600; font-size:0.95rem; margin-bottom:16px; display:flex; align-items:center; gap:8px; color:var(--text); }
+    .card-header .dot { width:8px; height:8px; border-radius:50%; display:inline-block; flex-shrink:0; }
+    .dot-1{background:#e03131;} .dot-2{background:#c92a2a;} .dot-3{background:#e67700;}
+    .dot-4{background:#f08c00;} .dot-5{background:#2b8a3e;} .dot-6{background:#0c6b3f; box-shadow:0 0 6px rgba(12,107,63,0.5);}
+    .dot-7{background:#5f3dc4; box-shadow:0 0 6px rgba(95,61,196,0.5);} .dot-8{background:#a61e4d; box-shadow:0 0 6px rgba(166,30,77,0.5);}
+    .level-selector {
+      display:grid; grid-template-columns:repeat(4,1fr); gap:10px;
+    }
+    @media(max-width:640px){ .level-selector{grid-template-columns:repeat(2,1fr);} }
+    .level-btn {
+      padding:14px 10px; border:2px solid var(--border); border-radius:var(--radius);
+      background:var(--surface); cursor:pointer; text-align:center; transition:all var(--transition);
+      font-family:inherit; font-size:0.85rem; color:var(--text2);
+    }
+    .level-btn:hover { border-color:var(--accent); background:var(--accent-light); color:var(--accent); }
+    .level-btn.active {
+      border-color:var(--accent); background:var(--accent-light); color:var(--accent);
+      font-weight:600; box-shadow:0 0 0 3px rgba(26,86,219,0.1);
+    }
+    .level-btn .lvl-num { display:block; font-size:1.2rem; font-weight:700; margin-bottom:2px; }
+    .level-btn .lvl-name { display:block; font-size:0.78rem; opacity:0.85; }
+    .level-btn .lvl-badge { display:inline-block; font-size:0.7rem; padding:2px 8px; border-radius:10px; margin-top:4px; font-weight:500; }
+    .badge-low{background:#ffe3e3;color:#c92a2a;} .badge-med{background:#fff3e0;color:#e67700;}
+    .badge-high{background:#d3f9d8;color:#2b8a3e;} .badge-max{background:#c6f6d5;color:#0c6b3f;} .badge-fun{background:#f3f0ff;color:#5f3dc4;}
+    textarea {
+      width:100%; min-height:120px; padding:12px 14px; border:1.5px solid var(--border2);
+      border-radius:var(--radius-sm); font-family:var(--font-mono); font-size:0.9rem;
+      resize:vertical; background:var(--surface2); color:var(--text); transition:border-color var(--transition);
+    }
+    textarea:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(26,86,219,0.08); background:var(--surface); }
+    textarea::placeholder { color:#adb5bd; }
+    input[type="text"], input[type="password"], input[type="number"], input[type="file"] {
+      width:100%; padding:10px 14px; border:1.5px solid var(--border2); border-radius:var(--radius-sm);
+      font-family:inherit; font-size:0.9rem; background:var(--surface2); color:var(--text);
+      transition:all var(--transition);
+    }
+    input:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(26,86,219,0.08); background:var(--surface); }
+    label { display:block; font-weight:500; font-size:0.85rem; color:var(--text2); margin-bottom:6px; }
+    .btn {
+      display:inline-flex; align-items:center; justify-content:center; gap:6px;
+      padding:10px 20px; border-radius:var(--radius-sm); font-family:inherit; font-size:0.9rem;
+      font-weight:500; cursor:pointer; border:none; transition:all var(--transition);
+      white-space:nowrap; letter-spacing:0.01em;
+    }
+    .btn-primary { background:var(--accent); color:#fff; }
+    .btn-primary:hover { background:var(--accent-hover); box-shadow:var(--shadow); }
+    .btn-secondary { background:var(--surface2); color:var(--text2); border:1.5px solid var(--border2); }
+    .btn-secondary:hover { background:#e9ecef; border-color:#adb5bd; }
+    .btn-danger { background:var(--danger-light); color:var(--danger); border:1.5px solid #ffc9c9; }
+    .btn-danger:hover { background:#ffe3e3; border-color:#ffa8a8; }
+    .btn-sm { padding:6px 14px; font-size:0.8rem; }
+    .btn:disabled { opacity:0.5; cursor:not-allowed; pointer-events:none; }
+    .btn-group { display:flex; gap:10px; flex-wrap:wrap; }
+    .output-area { position:relative; }
+    .output-area textarea { background:#fafbfc; border-color:#d0d5dd; color:#1a1a2e; min-height:100px; font-size:0.82rem; }
+    .copy-btn {
+      position:absolute; top:8px; right:8px; padding:5px 12px; font-size:0.75rem;
+      background:var(--surface); border:1px solid var(--border2); border-radius:4px;
+      cursor:pointer; transition:all var(--transition); color:var(--text3);
+    }
+    .copy-btn:hover { background:var(--accent-light); color:var(--accent); border-color:var(--accent); }
+    .key-display {
+      background:#fafbfc; border:1px solid var(--border); border-radius:var(--radius-sm);
+      padding:10px 14px; font-family:var(--font-mono); font-size:0.75rem; word-break:break-all;
+      max-height:80px; overflow-y:auto; color:var(--text2); line-height:1.5; white-space:pre-wrap;
+    }
+    .status-msg {
+      padding:10px 14px; border-radius:var(--radius-sm); font-size:0.85rem; margin-top:10px;
+      display:none; font-weight:500;
+    }
+    .status-msg.success{display:block;background:var(--success-light);color:var(--success);border:1px solid #b2f2bb;}
+    .status-msg.error{display:block;background:var(--danger-light);color:var(--danger);border:1px solid #ffc9c9;}
+    .status-msg.info{display:block;background:var(--accent-light);color:var(--accent);border:1px solid #bac8ff;}
+    .status-msg.warning{display:block;background:var(--warning-light);color:var(--warning);border:1px solid #ffd8a8;}
+    .spinner {
+      display:inline-block; width:16px; height:16px; border:2px solid #ccc;
+      border-top-color:var(--accent); border-radius:50%; animation:spin 0.7s linear infinite;
+      vertical-align:middle; margin-right:6px;
+    }
+    @keyframes spin { to{transform:rotate(360deg);} }
+    .file-input-wrapper { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .file-info { font-size:0.8rem; color:var(--text3); font-family:var(--font-mono); }
+    .divider { border:none; border-top:1px solid var(--border); margin:20px 0; }
+    .tab-switcher { display:flex; gap:0; margin-bottom:16px; border:1px solid var(--border); border-radius:var(--radius-sm); overflow:hidden; width:fit-content; }
+    .tab-switcher button {
+      padding:8px 20px; border:none; background:var(--surface2); cursor:pointer;
+      font-family:inherit; font-size:0.85rem; color:var(--text3); transition:all var(--transition);
+    }
+    .tab-switcher button.active-tab { background:var(--accent); color:#fff; font-weight:500; }
+    .info-text { font-size:0.75rem; color:var(--text3); margin-top:4px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="icon">🔐</div>
+    <h1>高级加密工具</h1>
+    <p class="subtitle">纯浏览器端安全加密 · 八级算法 · 文字与文件支持</p>
+  </div>
+
+  <!-- 级别选择 -->
+  <div class="card">
+    <div class="card-header">🔒 选择加密级别</div>
+    <div class="level-selector" id="levelSelector">
+      <button class="level-btn" data-level="1"><span class="lvl-num">Lv1</span><span class="lvl-name">凯撒密码</span><span class="lvl-badge badge-low">古典</span></button>
+      <button class="level-btn" data-level="2"><span class="lvl-num">Lv2</span><span class="lvl-name">维吉尼亚</span><span class="lvl-badge badge-low">多表</span></button>
+      <button class="level-btn" data-level="3"><span class="lvl-num">Lv3</span><span class="lvl-name">XOR 字节异或</span><span class="lvl-badge badge-med">简单异或</span></button>
+      <button class="level-btn" data-level="4"><span class="lvl-num">Lv4</span><span class="lvl-name">Base64 编码</span><span class="lvl-badge badge-med">混淆</span></button>
+      <button class="level-btn active" data-level="5"><span class="lvl-num">Lv5</span><span class="lvl-name">AES-256-GCM</span><span class="lvl-badge badge-high">对称加密</span></button>
+      <button class="level-btn" data-level="6"><span class="lvl-num">Lv6</span><span class="lvl-name">AES+凯撒双重</span><span class="lvl-badge badge-fun">混淆加强</span></button>
+      <button class="level-btn" data-level="7"><span class="lvl-num">Lv7</span><span class="lvl-name">RSA + AES</span><span class="lvl-badge badge-max">混合加密</span></button>
+      <button class="level-btn" data-level="8"><span class="lvl-num">Lv8</span><span class="lvl-name">RSA+AES+ECDSA</span><span class="lvl-badge badge-max">最高安全</span></button>
+    </div>
+  </div>
+
+  <!-- 密钥管理（动态区域） -->
+  <div class="card" id="keyManagementCard">
+    <div class="card-header" id="keyMgmtHeader"><span class="dot dot-5"></span> 密钥管理</div>
+    <div id="keyMgmtContent">
+      <!-- Level 1: 凯撒 -->
+      <div id="keyAreaL1" style="display:none;">
+        <label for="caesarShift">🔢 移位值 (1-25)</label>
+        <input type="number" id="caesarShift" value="3" min="1" max="25" style="width:120px;">
+        <span class="info-text">适用于英文字母 A-Z / a-z</span>
+      </div>
+      <!-- Level 2: 维吉尼亚 -->
+      <div id="keyAreaL2" style="display:none;">
+        <label for="vigenereKey">🔑 密钥词 (字母)</label>
+        <input type="text" id="vigenereKey" placeholder="例如 SECRET" style="width:200px;">
+        <span class="info-text">仅英文字母，用作循环移位序列</span>
+      </div>
+      <!-- Level 3: XOR -->
+      <div id="keyAreaL3" style="display:none;">
+        <label for="xorPassword">🔑 XOR 密码</label>
+        <input type="text" id="xorPassword" placeholder="输入任意密码 (UTF-8)">
+        <span class="info-text">密码字节与数据循环异或</span>
+      </div>
+      <!-- Level 4: Base64 无密钥 -->
+      <div id="keyAreaL4" style="display:none;">
+        <div style="padding:10px; background:var(--surface2); border-radius:var(--radius-sm); color:var(--text3);">
+          ⚡ Base64 编码/解码无需密钥，直接进行文本和文件转换。
+        </div>
+      </div>
+      <!-- Level 5: AES-256-GCM -->
+      <div id="keyAreaL5">
+        <label for="passwordInput">🔑 加密密码</label>
+        <input type="password" id="passwordInput" placeholder="输入强密码（建议16字符以上）" autocomplete="off">
+        <div class="info-text">PBKDF2-SHA-512 (30万次迭代) 派生 256 位 AES 密钥</div>
+      </div>
+      <!-- Level 6: AES + 凯撒双重混淆 -->
+      <div id="keyAreaL6" style="display:none;">
+        <label for="passwordInputL6">🔑 AES 加密密码</label>
+        <input type="password" id="passwordInputL6" placeholder="输入强密码" autocomplete="off">
+        <label for="caesarShiftL6" style="margin-top:8px;">🔢 额外凯撒移位 (1-255)</label>
+        <input type="number" id="caesarShiftL6" value="7" min="1" max="255" style="width:120px;">
+        <span class="info-text">AES 加密后再对字节进行全局移位</span>
+      </div>
+      <!-- Level 7: RSA + AES -->
+      <div id="keyAreaL7" style="display:none;">
+        <div style="margin-bottom:12px;">
+          <button class="btn btn-primary btn-sm" id="generateRSAKeyBtn">⚡ 生成 RSA-4096 密钥对</button>
+          <span class="info-text" style="margin-left:8px;">可能需要10-30秒</span>
+          <span id="rsaGenStatus" style="display:none;margin-left:8px;"><span class="spinner"></span>生成中…</span>
+        </div>
+        <label>📤 RSA 公钥 (用于加密)</label>
+        <div class="key-display" id="rsaPublicKeyDisplay">尚未生成密钥对</div>
+        <button class="btn btn-secondary btn-sm" style="margin-top:4px;" id="copyRSAPublicBtn" disabled>📋 复制公钥</button>
+        <label style="margin-top:12px;">🔐 RSA 私钥 (用于解密，务必保密)</label>
+        <div class="key-display" id="rsaPrivateKeyDisplay" style="color:#c92a2a;">尚未生成密钥对</div>
+        <button class="btn btn-danger btn-sm" style="margin-top:4px;" id="copyRSAPrivateBtn" disabled>⚠️ 复制私钥</button>
+        <div class="info-text">加密时使用<strong>公钥</strong>，解密时使用<strong>私钥</strong>。可导入已有密钥。</div>
+        <div style="margin-top:8px;">
+          <label style="font-size:0.8rem;">📥 导入公钥 (Base64)：</label>
+          <input type="text" id="importRSAPublicKey" placeholder="粘贴RSA公钥Base64…">
+          <button class="btn btn-secondary btn-sm" style="margin-top:4px;" id="importRSAPublicBtn">导入公钥</button>
+          <label style="font-size:0.8rem;margin-top:6px;">📥 导入私钥 (Base64)：</label>
+          <input type="text" id="importRSAPrivateKey" placeholder="粘贴RSA私钥Base64…">
+          <button class="btn btn-danger btn-sm" style="margin-top:4px;" id="importRSAPrivateBtn">导入私钥</button>
+        </div>
+      </div>
+      <!-- Level 8: RSA + ECDSA -->
+      <div id="keyAreaL8" style="display:none;">
+        <div style="margin-bottom:12px;">
+          <button class="btn btn-primary btn-sm" id="generateAllKeysBtn">⚡ 生成全部密钥对 (RSA-4096 + ECDSA P-384)</button>
+          <span class="info-text" style="margin-left:8px;">可能需要15-40秒</span>
+          <span id="allKeysGenStatus" style="display:none;margin-left:8px;"><span class="spinner"></span>生成中…</span>
+        </div>
+        <details open style="margin-bottom:12px;">
+          <summary style="cursor:pointer;font-weight:600;font-size:0.9rem;">📤 RSA 密钥对 (加密/解密)</summary>
+          <div style="margin-top:8px;">
+            <label>RSA 公钥</label>
+            <div class="key-display" id="rsaPublicKeyDisplayL8">尚未生成</div>
+            <button class="btn btn-secondary btn-sm" style="margin-top:4px;" id="copyRSAPublicBtnL8" disabled>📋 复制公钥</button>
+            <label style="margin-top:8px;">RSA 私钥</label>
+            <div class="key-display" id="rsaPrivateKeyDisplayL8" style="color:#c92a2a;">尚未生成</div>
+            <button class="btn btn-danger btn-sm" style="margin-top:4px;" id="copyRSAPrivateBtnL8" disabled>⚠️ 复制私钥</button>
+          </div>
+        </details>
+        <details open style="margin-bottom:12px;">
+          <summary style="cursor:pointer;font-weight:600;font-size:0.9rem;">✍️ ECDSA 密钥对 (数字签名)</summary>
+          <div style="margin-top:8px;">
+            <label>ECDSA 公钥</label>
+            <div class="key-display" id="ecdsaPublicKeyDisplay">尚未生成</div>
+            <button class="btn btn-secondary btn-sm" style="margin-top:4px;" id="copyECDSAPublicBtn" disabled>📋 复制公钥</button>
+            <label style="margin-top:8px;">ECDSA 私钥</label>
+            <div class="key-display" id="ecdsaPrivateKeyDisplay" style="color:#c92a2a;">尚未生成</div>
+            <button class="btn btn-danger btn-sm" style="margin-top:4px;" id="copyECDSAPrivateBtn" disabled>⚠️ 复制私钥</button>
+          </div>
+        </details>
+        <div class="info-text">RSA混合加密 + ECDSA数字签名。加密用<strong>RSA公钥</strong>+<strong>ECDSA私钥</strong>签名；解密用<strong>RSA私钥</strong>+<strong>ECDSA公钥</strong>验签。</div>
+        <div style="margin-top:8px;font-size:0.8rem;">
+          <label>📥 导入RSA公钥：</label><input type="text" id="importRSAPublicKeyL8" placeholder="Base64…"><button class="btn btn-secondary btn-sm" style="margin-top:4px;" id="importRSAPublicBtnL8">导入</button>
+          <label style="margin-top:4px;">📥 导入RSA私钥：</label><input type="text" id="importRSAPrivateKeyL8" placeholder="Base64…"><button class="btn btn-danger btn-sm" style="margin-top:4px;" id="importRSAPrivateBtnL8">导入</button>
+          <label style="margin-top:4px;">📥 导入ECDSA公钥：</label><input type="text" id="importECDSAPublicKey" placeholder="Base64…"><button class="btn btn-secondary btn-sm" style="margin-top:4px;" id="importECDSAPublicBtn">导入</button>
+          <label style="margin-top:4px;">📥 导入ECDSA私钥：</label><input type="text" id="importECDSAPrivateKey" placeholder="Base64…"><button class="btn btn-danger btn-sm" style="margin-top:4px;" id="importECDSAPrivateBtn">导入</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 输入模式 -->
+  <div class="card">
+    <div class="card-header">📝 输入模式</div>
+    <div class="tab-switcher" id="tabSwitcher">
+      <button class="active-tab" data-tab="text">📝 文字输入</button>
+      <button data-tab="file">📁 文件加密</button>
+    </div>
+    <div id="textInputArea">
+      <label for="plaintextInput">输入明文（解密时粘贴密文）</label>
+      <textarea id="plaintextInput" placeholder="在此输入要加密的文字…"></textarea>
+    </div>
+    <div id="fileInputArea" style="display:none;">
+      <label for="fileInput">选择要加密的文件</label>
+      <div class="file-input-wrapper">
+        <input type="file" id="fileInput">
+        <span class="file-info" id="fileInfo">未选择文件</span>
+      </div>
+      <div class="info-text">支持任意类型文件，加密后将下载 .enc 文件。</div>
+    </div>
+    <div id="statusMsg" class="status-msg"></div>
+  </div>
+
+  <!-- 操作按钮 -->
+  <div class="card">
+    <div class="btn-group">
+      <button class="btn btn-primary" id="encryptBtn">🔒 加密</button>
+      <button class="btn btn-secondary" id="decryptBtn">🔓 解密</button>
+      <button class="btn btn-secondary btn-sm" id="clearBtn">🗑️ 清空</button>
+    </div>
+    <div id="operationStatus" style="margin-top:8px;font-size:0.8rem;color:var(--text3);"></div>
+  </div>
+
+  <!-- 输出区域 -->
+  <div class="card">
+    <div class="card-header">📤 输出结果</div>
+    <div class="output-area">
+      <textarea id="outputText" placeholder="加密或解密结果将显示在这里…" readonly></textarea>
+      <button class="copy-btn" id="copyOutputBtn" title="复制结果">📋 复制</button>
+    </div>
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-secondary btn-sm" id="downloadOutputBtn" style="display:none;">💾 下载文件</button>
+      <span id="outputInfo" style="font-size:0.78rem;color:var(--text3);align-self:center;"></span>
+    </div>
+  </div>
+
+  <!-- 安全声明 -->
+  <div class="card" style="background:var(--surface2);border-left:3px solid var(--accent);">
+    <div style="font-size:0.8rem;color:var(--text2);line-height:1.7;">
+      <strong>🛡️ 安全说明：</strong>所有加密运算在浏览器本地执行，使用 Web Crypto API。私钥和密码不会存储或传输。请妥善保管密钥，丢失后无法解密。低级别算法仅用于教育或简单混淆，不具备高强度安全性。
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // ========== DOM 元素 ==========
+    const levelBtns = document.querySelectorAll('#levelSelector .level-btn');
+    const keyMgmtHeader = document.getElementById('keyMgmtHeader');
+    const tabBtns = document.querySelectorAll('#tabSwitcher button');
+    const textInputArea = document.getElementById('textInputArea');
+    const fileInputArea = document.getElementById('fileInputArea');
+    const plaintextInput = document.getElementById('plaintextInput');
+    const fileInput = document.getElementById('fileInput');
+    const fileInfo = document.getElementById('fileInfo');
+    const outputText = document.getElementById('outputText');
+    const statusMsg = document.getElementById('statusMsg');
+    const operationStatus = document.getElementById('operationStatus');
+    const encryptBtn = document.getElementById('encryptBtn');
+    const decryptBtn = document.getElementById('decryptBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const copyOutputBtn = document.getElementById('copyOutputBtn');
+    const downloadOutputBtn = document.getElementById('downloadOutputBtn');
+    const outputInfo = document.getElementById('outputInfo');
+
+    // 各密钥区域元素
+    const keyAreas = {
+      1: document.getElementById('keyAreaL1'),
+      2: document.getElementById('keyAreaL2'),
+      3: document.getElementById('keyAreaL3'),
+      4: document.getElementById('keyAreaL4'),
+      5: document.getElementById('keyAreaL5'),
+      6: document.getElementById('keyAreaL6'),
+      7: document.getElementById('keyAreaL7'),
+      8: document.getElementById('keyAreaL8')
+    };
+
+    // 动态密钥输入元素
+    const caesarShift = document.getElementById('caesarShift');
+    const vigenereKeyInput = document.getElementById('vigenereKey');
+    const xorPasswordInput = document.getElementById('xorPassword');
+    const passwordInput = document.getElementById('passwordInput');
+    const passwordInputL6 = document.getElementById('passwordInputL6');
+    const caesarShiftL6 = document.getElementById('caesarShiftL6');
+
+    // ========== 状态 ==========
+    let currentLevel = 5;   // 默认 AES-256
+    let currentMode = 'text';
+    let rsaKeyPairL7 = null;   // Level 7  RSA 密钥对
+    let rsaKeyPairL8 = null;   // Level 8  RSA 密钥对
+    let ecdsaKeyPair = null;   // Level 8  ECDSA 密钥对
+    let rsaPublicKeyB64L7 = null, rsaPrivateKeyB64L7 = null;
+    let rsaPublicKeyB64L8 = null, rsaPrivateKeyB64L8 = null;
+    let ecdsaPublicKeyB64 = null, ecdsaPrivateKeyB64 = null;
+    let lastEncryptedFileData = null, lastEncryptedFileName = null;
+    let lastDecryptedFileData = null, lastDecryptedFileName = null;
+
+    // ========== 工具函数 ==========
+    function arrayBufferToBase64(buffer) {
+      const bytes = new Uint8Array(buffer);
+      let binary = '';
+      for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+      return btoa(binary);
+    }
+    function base64ToArrayBuffer(base64) {
+      const binary = atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      return bytes.buffer;
+    }
+    function stringToArrayBuffer(str) { return new TextEncoder().encode(str); }
+    function arrayBufferToString(buffer) { return new TextDecoder().decode(buffer); }
+
+    function showStatus(msg, type) {
+      statusMsg.textContent = msg;
+      statusMsg.className = 'status-msg ' + type;
+      statusMsg.style.display = 'block';
+      setTimeout(() => {
+        if (statusMsg.textContent === msg) {
+          statusMsg.style.display = 'none';
+          statusMsg.className = 'status-msg';
+        }
+      }, 8000);
+    }
+    function hideStatus() { statusMsg.style.display = 'none'; statusMsg.className = 'status-msg'; }
+    function setOps(msg) { operationStatus.textContent = msg; }
+    function clearOps() { operationStatus.textContent = ''; }
+
+    // ========== 级别 UI 切换 ==========
+    function updateKeyUI() {
+      Object.values(keyAreas).forEach(area => { if(area) area.style.display = 'none'; });
+      const dot = document.createElement('span'); dot.className = 'dot';
+      keyMgmtHeader.innerHTML = '';
+      keyMgmtHeader.appendChild(dot);
+      let headerText = '';
+      const area = keyAreas[currentLevel];
+      if (area) area.style.display = 'block';
+      switch(currentLevel) {
+        case 1: dot.classList.add('dot-1'); headerText = ' 凯撒密码参数'; break;
+        case 2: dot.classList.add('dot-2'); headerText = ' 维吉尼亚密码密钥'; break;
+        case 3: dot.classList.add('dot-3'); headerText = ' XOR 字节异或密码'; break;
+        case 4: dot.classList.add('dot-4'); headerText = ' Base64 编码 (无密钥)'; break;
+        case 5: dot.classList.add('dot-5'); headerText = ' AES-256-GCM 密码'; break;
+        case 6: dot.classList.add('dot-6'); headerText = ' AES + 凯撒双重混淆'; break;
+        case 7: dot.classList.add('dot-7'); headerText = ' RSA-4096 + AES-256-GCM'; break;
+        case 8: dot.classList.add('dot-8'); headerText = ' RSA + ECDSA 双密钥对'; break;
+      }
+      keyMgmtHeader.appendChild(document.createTextNode(headerText));
+    }
+
+    levelBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        levelBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentLevel = parseInt(btn.dataset.level);
+        updateKeyUI();
+        outputText.value = '';
+        downloadOutputBtn.style.display = 'none';
+        lastEncryptedFileData = lastDecryptedFileData = null;
+        outputInfo.textContent = '';
+        hideStatus(); clearOps();
+      });
+    });
+
+    // 文字/文件 切换
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabBtns.forEach(b => b.classList.remove('active-tab'));
+        btn.classList.add('active-tab');
+        currentMode = btn.dataset.tab;
+        textInputArea.style.display = currentMode === 'text' ? 'block' : 'none';
+        fileInputArea.style.display = currentMode === 'file' ? 'block' : 'none';
+        outputText.value = '';
+        downloadOutputBtn.style.display = 'none';
+        lastEncryptedFileData = lastDecryptedFileData = null;
+        outputInfo.textContent = '';
+        hideStatus(); clearOps();
+      });
+    });
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length > 0) {
+        const f = fileInput.files[0];
+        fileInfo.textContent = `📄 ${f.name} (${(f.size/1024).toFixed(1)} KB)`;
+      } else fileInfo.textContent = '未选择文件';
+    });
+
+    // ========== 加密算法实现 ==========
+    // Level 1 凯撒 (字母)
+    function caesarTextEncrypt(text, shift) {
+      shift = ((shift % 26) + 26) % 26;
+      let res = '';
+      for (let i = 0; i < text.length; i++) {
+        const c = text.charCodeAt(i);
+        if (c >= 65 && c <= 90) res += String.fromCharCode(((c - 65 + shift) % 26) + 65);
+        else if (c >= 97 && c <= 122) res += String.fromCharCode(((c - 97 + shift) % 26) + 97);
+        else res += text[i];
+      }
+      return res;
+    }
+    function caesarTextDecrypt(text, shift) { return caesarTextEncrypt(text, 26 - (shift % 26)); }
+    function caesarShiftBytes(buffer, shift) {
+      shift = ((shift % 256) + 256) % 256;
+      const bytes = new Uint8Array(buffer);
+      const res = new Uint8Array(bytes.length);
+      for (let i = 0; i < bytes.length; i++) res[i] = (bytes[i] + shift) % 256;
+      return res.buffer;
+    }
+    function caesarUnshiftBytes(buffer, shift) { return caesarShiftBytes(buffer, 256 - (shift % 256)); }
+
+    // Level 2 维吉尼亚 (字母文本 / 字节文件)
+    function vigenereTextEncrypt(text, key) {
+      const clean = key.replace(/[^a-zA-Z]/g, '').toUpperCase();
+      if (!clean) throw new Error('密钥需包含英文字母');
+      let res = '', j = 0;
+      for (let i = 0; i < text.length; i++) {
+        const c = text.charCodeAt(i);
+        const shift = clean.charCodeAt(j % clean.length) - 65;
+        if (c >= 65 && c <= 90) { res += String.fromCharCode(((c - 65 + shift) % 26) + 65); j++; }
+        else if (c >= 97 && c <= 122) { res += String.fromCharCode(((c - 97 + shift) % 26) + 97); j++; }
+        else res += text[i];
+      }
+      return res;
+    }
+    function vigenereTextDecrypt(text, key) {
+      const clean = key.replace(/[^a-zA-Z]/g, '').toUpperCase();
+      let res = '', j = 0;
+      for (let i = 0; i < text.length; i++) {
+        const c = text.charCodeAt(i);
+        const shift = clean.charCodeAt(j % clean.length) - 65;
+        if (c >= 65 && c <= 90) { res += String.fromCharCode(((c - 65 + 26 - shift) % 26) + 65); j++; }
+        else if (c >= 97 && c <= 122) { res += String.fromCharCode(((c - 97 + 26 - shift) % 26) + 97); j++; }
+        else res += text[i];
+      }
+      return res;
+    }
+    function vigenereBytesEncrypt(buffer, key) {
+      const pw = new TextEncoder().encode(key);
+      const data = new Uint8Array(buffer);
+      const out = new Uint8Array(data.length);
+      for (let i = 0; i < data.length; i++) out[i] = (data[i] + pw[i % pw.length]) % 256;
+      return out.buffer;
+    }
+    function vigenereBytesDecrypt(buffer, key) {
+      const pw = new TextEncoder().encode(key);
+      const data = new Uint8Array(buffer);
+      const out = new Uint8Array(data.length);
+      for (let i = 0; i < data.length; i++) out[i] = (data[i] + 256 - pw[i % pw.length]) % 256;
+      return out.buffer;
+    }
+
+    // Level 3 XOR
+    function xorEncrypt(buffer, password) {
+      const pw = new TextEncoder().encode(password);
+      if (pw.length === 0) throw new Error('密码不能为空');
+      const data = new Uint8Array(buffer);
+      const out = new Uint8Array(data.length);
+      for (let i = 0; i < data.length; i++) out[i] = data[i] ^ pw[i % pw.length];
+      return out.buffer;
+    }
+    const xorDecrypt = xorEncrypt; // 对称
+
+    // Level 4 Base64
+    function base64Encode(buffer) {
+      return arrayBufferToBase64(buffer);
+    }
+    function base64Decode(base64) {
+      return base64ToArrayBuffer(base64);
+    }
+
+    // Level 5 AES-256-GCM
+    async function deriveAESKey(password, salt) {
+      const keyMaterial = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']);
+      return crypto.subtle.deriveKey(
+        { name: 'PBKDF2', salt, iterations: 300000, hash: 'SHA-512' },
+        keyMaterial,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['encrypt', 'decrypt']
+      );
+    }
+    async function aesEncrypt(plainData, password) {
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const key = await deriveAESKey(password, salt);
+      const data = (typeof plainData === 'string') ? stringToArrayBuffer(plainData) : plainData;
+      const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, data);
+      const packed = new Uint8Array(16 + 12 + ct.byteLength);
+      packed.set(salt, 0);
+      packed.set(iv, 16);
+      packed.set(new Uint8Array(ct), 28);
+      return packed.buffer;
+    }
+    async function aesDecrypt(packedData, password) {
+      const bytes = new Uint8Array(packedData);
+      if (bytes.length < 28) throw new Error('数据格式无效');
+      const salt = bytes.slice(0, 16);
+      const iv = bytes.slice(16, 28);
+      const ct = bytes.slice(28);
+      const key = await deriveAESKey(password, salt);
+      return crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
+    }
+
+    // Level 7 RSA + AES
+    async function generateRSAKeyPair() {
+      return crypto.subtle.generateKey(
+        { name: 'RSA-OAEP', modulusLength: 4096, publicExponent: new Uint8Array([1,0,1]), hash: 'SHA-512' },
+        true,
+        ['encrypt', 'decrypt']
+      );
+    }
+    async function exportRSAKey(key) {
+      const format = key.type === 'public' ? 'spki' : 'pkcs8';
+      return arrayBufferToBase64(await crypto.subtle.exportKey(format, key));
+    }
+    async function importRSAPublicKey(b64) {
+      return crypto.subtle.importKey('spki', base64ToArrayBuffer(b64), { name: 'RSA-OAEP', hash: 'SHA-512' }, true, ['encrypt']);
+    }
+    async function importRSAPrivateKey(b64) {
+      return crypto.subtle.importKey('pkcs8', base64ToArrayBuffer(b64), { name: 'RSA-OAEP', hash: 'SHA-512' }, true, ['decrypt']);
+    }
+    async function rsaAesEncrypt(plainData, rsaPubKey) {
+      const aesKey = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt']);
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const data = (typeof plainData === 'string') ? stringToArrayBuffer(plainData) : plainData;
+      const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, aesKey, data);
+      const rawAes = await crypto.subtle.exportKey('raw', aesKey);
+      const encKey = await crypto.subtle.encrypt({ name: 'RSA-OAEP' }, rsaPubKey, rawAes);
+      const encBytes = new Uint8Array(encKey), ctBytes = new Uint8Array(ct);
+      const packed = new Uint8Array(4 + encBytes.length + 12 + ctBytes.length);
+      new DataView(packed.buffer).setUint32(0, encBytes.length, false);
+      packed.set(encBytes, 4);
+      packed.set(iv, 4 + encBytes.length);
+      packed.set(ctBytes, 4 + encBytes.length + 12);
+      return packed.buffer;
+    }
+    async function rsaAesDecrypt(packedData, rsaPrivKey) {
+      const data = new Uint8Array(packedData);
+      const encLen = new DataView(data.buffer, data.byteOffset, data.byteLength).getUint32(0, false);
+      const encKey = data.slice(4, 4 + encLen);
+      const iv = data.slice(4 + encLen, 4 + encLen + 12);
+      const ct = data.slice(4 + encLen + 12);
+      const rawAes = await crypto.subtle.decrypt({ name: 'RSA-OAEP' }, rsaPrivKey, encKey);
+      const aesKey = await crypto.subtle.importKey('raw', rawAes, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+      return crypto.subtle.decrypt({ name: 'AES-GCM', iv }, aesKey, ct);
+    }
+
+    // Level 8 ECDSA
+    async function generateECDSAKeyPair() {
+      return crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-384' }, true, ['sign', 'verify']);
+    }
+    async function exportECDSAKey(key) {
+      const format = key.type === 'public' ? 'spki' : 'pkcs8';
+      return arrayBufferToBase64(await crypto.subtle.exportKey(format, key));
+    }
+    async function importECDSAPublicKey(b64) {
+      return crypto.subtle.importKey('spki', base64ToArrayBuffer(b64), { name: 'ECDSA', namedCurve: 'P-384' }, true, ['verify']);
+    }
+    async function importECDSAPrivateKey(b64) {
+      return crypto.subtle.importKey('pkcs8', base64ToArrayBuffer(b64), { name: 'ECDSA', namedCurve: 'P-384' }, true, ['sign']);
+    }
+    async function rsaAesEcdsaEncrypt(plainData, rsaPub, ecdsaPriv) {
+      const aesKey = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt']);
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const data = (typeof plainData === 'string') ? stringToArrayBuffer(plainData) : plainData;
+      const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, aesKey, data);
+      const rawAes = await crypto.subtle.exportKey('raw', aesKey);
+      const encKey = await crypto.subtle.encrypt({ name: 'RSA-OAEP' }, rsaPub, rawAes);
+      const signature = await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-384' }, ecdsaPriv, ct);
+      const encBytes = new Uint8Array(encKey), sigBytes = new Uint8Array(signature), ctBytes = new Uint8Array(ct);
+      const packed = new Uint8Array(4 + encBytes.length + 12 + 4 + sigBytes.length + ctBytes.length);
+      const view = new DataView(packed.buffer);
+      let off = 0;
+      view.setUint32(off, encBytes.length, false); off += 4;
+      packed.set(encBytes, off); off += encBytes.length;
+      packed.set(iv, off); off += 12;
+      view.setUint32(off, sigBytes.length, false); off += 4;
+      packed.set(sigBytes, off); off += sigBytes.length;
+      packed.set(ctBytes, off);
+      return packed.buffer;
+    }
+    async function rsaAesEcdsaDecrypt(packedData, rsaPriv, ecdsaPub) {
+      const data = new Uint8Array(packedData);
+      const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+      let off = 0;
+      const encLen = view.getUint32(off, false); off += 4;
+      const encKey = data.slice(off, off + encLen); off += encLen;
+      const iv = data.slice(off, off + 12); off += 12;
+      const sigLen = view.getUint32(off, false); off += 4;
+      const signature = data.slice(off, off + sigLen); off += sigLen;
+      const ct = data.slice(off);
+      const valid = await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-384' }, ecdsaPub, signature, ct);
+      if (!valid) throw new Error('ECDSA 签名验证失败，数据可能被篡改！');
+      const rawAes = await crypto.subtle.decrypt({ name: 'RSA-OAEP' }, rsaPriv, encKey);
+      const aesKey = await crypto.subtle.importKey('raw', rawAes, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+      return crypto.subtle.decrypt({ name: 'AES-GCM', iv }, aesKey, ct);
+    }
+
+    // ========== 密钥生成 / 导入事件 ==========
+    // Level 7 生成
+    document.getElementById('generateRSAKeyBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('generateRSAKeyBtn');
+      const statusEl = document.getElementById('rsaGenStatus');
+      btn.disabled = true; statusEl.style.display = 'inline';
+      try {
+        rsaKeyPairL7 = await generateRSAKeyPair();
+        rsaPublicKeyB64L7 = await exportRSAKey(rsaKeyPairL7.publicKey);
+        rsaPrivateKeyB64L7 = await exportRSAKey(rsaKeyPairL7.privateKey);
+        document.getElementById('rsaPublicKeyDisplay').textContent = rsaPublicKeyB64L7;
+        document.getElementById('rsaPrivateKeyDisplay').textContent = rsaPrivateKeyB64L7;
+        document.getElementById('copyRSAPublicBtn').disabled = false;
+        document.getElementById('copyRSAPrivateBtn').disabled = false;
+        showStatus('✅ RSA-4096 密钥对生成成功！', 'success');
+      } catch (e) { showStatus('❌ 生成失败：' + e.message, 'error'); }
+      finally { btn.disabled = false; statusEl.style.display = 'none'; }
+    });
+    // Level 8 生成全部
+    document.getElementById('generateAllKeysBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('generateAllKeysBtn');
+      const statusEl = document.getElementById('allKeysGenStatus');
+      btn.disabled = true; statusEl.style.display = 'inline';
+      try {
+        rsaKeyPairL8 = await generateRSAKeyPair();
+        ecdsaKeyPair = await generateECDSAKeyPair();
+        rsaPublicKeyB64L8 = await exportRSAKey(rsaKeyPairL8.publicKey);
+        rsaPrivateKeyB64L8 = await exportRSAKey(rsaKeyPairL8.privateKey);
+        ecdsaPublicKeyB64 = await exportECDSAKey(ecdsaKeyPair.publicKey);
+        ecdsaPrivateKeyB64 = await exportECDSAKey(ecdsaKeyPair.privateKey);
+        document.getElementById('rsaPublicKeyDisplayL8').textContent = rsaPublicKeyB64L8;
+        document.getElementById('rsaPrivateKeyDisplayL8').textContent = rsaPrivateKeyB64L8;
+        document.getElementById('ecdsaPublicKeyDisplay').textContent = ecdsaPublicKeyB64;
+        document.getElementById('ecdsaPrivateKeyDisplay').textContent = ecdsaPrivateKeyB64;
+        document.getElementById('copyRSAPublicBtnL8').disabled = false;
+        document.getElementById('copyRSAPrivateBtnL8').disabled = false;
+        document.getElementById('copyECDSAPublicBtn').disabled = false;
+        document.getElementById('copyECDSAPrivateBtn').disabled = false;
+        showStatus('✅ 全部密钥对生成成功！', 'success');
+      } catch (e) { showStatus('❌ 生成失败：' + e.message, 'error'); }
+      finally { btn.disabled = false; statusEl.style.display = 'none'; }
+    });
+
+    // 复制密钥通用函数
+    function setupCopy(btnId, getter) {
+      document.getElementById(btnId).addEventListener('click', async () => {
+        const val = getter();
+        if (!val || val.includes('尚未')) { showStatus('⚠️ 请先生成密钥对', 'warning'); return; }
+        try { await navigator.clipboard.writeText(val); showStatus('📋 已复制到剪贴板', 'success'); }
+        catch { showStatus('❌ 复制失败，请手动复制', 'error'); }
+      });
+    }
+    setupCopy('copyRSAPublicBtn', () => rsaPublicKeyB64L7);
+    setupCopy('copyRSAPrivateBtn', () => rsaPrivateKeyB64L7);
+    setupCopy('copyRSAPublicBtnL8', () => rsaPublicKeyB64L8);
+    setupCopy('copyRSAPrivateBtnL8', () => rsaPrivateKeyB64L8);
+    setupCopy('copyECDSAPublicBtn', () => ecdsaPublicKeyB64);
+    setupCopy('copyECDSAPrivateBtn', () => ecdsaPrivateKeyB64);
+
+    // 导入 Level 7
+    document.getElementById('importRSAPublicBtn').addEventListener('click', async () => {
+      const b64 = document.getElementById('importRSAPublicKey').value.trim();
+      if (!b64) { showStatus('⚠️ 请粘贴公钥', 'warning'); return; }
+      try {
+        const pk = await importRSAPublicKey(b64);
+        if (!rsaKeyPairL7) rsaKeyPairL7 = {};
+        rsaKeyPairL7.publicKey = pk; rsaPublicKeyB64L7 = b64;
+        document.getElementById('rsaPublicKeyDisplay').textContent = b64;
+        document.getElementById('copyRSAPublicBtn').disabled = false;
+        showStatus('✅ RSA公钥导入成功', 'success');
+      } catch (e) { showStatus('❌ 导入失败：'+e.message, 'error'); }
+    });
+    document.getElementById('importRSAPrivateBtn').addEventListener('click', async () => {
+      const b64 = document.getElementById('importRSAPrivateKey').value.trim();
+      if (!b64) { showStatus('⚠️ 请粘贴私钥', 'warning'); return; }
+      try {
+        const pk = await importRSAPrivateKey(b64);
+        if (!rsaKeyPairL7) rsaKeyPairL7 = {};
+        rsaKeyPairL7.privateKey = pk; rsaPrivateKeyB64L7 = b64;
+        document.getElementById('rsaPrivateKeyDisplay').textContent = b64;
+        document.getElementById('copyRSAPrivateBtn').disabled = false;
+        showStatus('✅ RSA私钥导入成功', 'success');
+      } catch (e) { showStatus('❌ 导入失败：'+e.message, 'error'); }
+    });
+    // 导入 Level 8
+    document.getElementById('importRSAPublicBtnL8').addEventListener('click', async () => {
+      const b64 = document.getElementById('importRSAPublicKeyL8').value.trim();
+      if (!b64) { showStatus('⚠️ 请粘贴RSA公钥', 'warning'); return; }
+      try {
+        const pk = await importRSAPublicKey(b64);
+        if (!rsaKeyPairL8) rsaKeyPairL8 = {};
+        rsaKeyPairL8.publicKey = pk; rsaPublicKeyB64L8 = b64;
+        document.getElementById('rsaPublicKeyDisplayL8').textContent = b64;
+        document.getElementById('copyRSAPublicBtnL8').disabled = false;
+        showStatus('✅ RSA公钥导入成功', 'success');
+      } catch (e) { showStatus('❌ 导入失败：'+e.message, 'error'); }
+    });
+    document.getElementById('importRSAPrivateBtnL8').addEventListener('click', async () => {
+      const b64 = document.getElementById('importRSAPrivateKeyL8').value.trim();
+      if (!b64) { showStatus('⚠️ 请粘贴RSA私钥', 'warning'); return; }
+      try {
+        const pk = await importRSAPrivateKey(b64);
+        if (!rsaKeyPairL8) rsaKeyPairL8 = {};
+        rsaKeyPairL8.privateKey = pk; rsaPrivateKeyB64L8 = b64;
+        document.getElementById('rsaPrivateKeyDisplayL8').textContent = b64;
+        document.getElementById('copyRSAPrivateBtnL8').disabled = false;
+        showStatus('✅ RSA私钥导入成功', 'success');
+      } catch (e) { showStatus('❌ 导入失败：'+e.message, 'error'); }
+    });
+    document.getElementById('importECDSAPublicBtn').addEventListener('click', async () => {
+      const b64 = document.getElementById('importECDSAPublicKey').value.trim();
+      if (!b64) { showStatus('⚠️ 请粘贴ECDSA公钥', 'warning'); return; }
+      try {
+        const pk = await importECDSAPublicKey(b64);
+        if (!ecdsaKeyPair) ecdsaKeyPair = {};
+        ecdsaKeyPair.publicKey = pk; ecdsaPublicKeyB64 = b64;
+        document.getElementById('ecdsaPublicKeyDisplay').textContent = b64;
+        document.getElementById('copyECDSAPublicBtn').disabled = false;
+        showStatus('✅ ECDSA公钥导入成功', 'success');
+      } catch (e) { showStatus('❌ 导入失败：'+e.message, 'error'); }
+    });
+    document.getElementById('importECDSAPrivateBtn').addEventListener('click', async () => {
+      const b64 = document.getElementById('importECDSAPrivateKey').value.trim();
+      if (!b64) { showStatus('⚠️ 请粘贴ECDSA私钥', 'warning'); return; }
+      try {
+        const pk = await importECDSAPrivateKey(b64);
+        if (!ecdsaKeyPair) ecdsaKeyPair = {};
+        ecdsaKeyPair.privateKey = pk; ecdsaPrivateKeyB64 = b64;
+        document.getElementById('ecdsaPrivateKeyDisplay').textContent = b64;
+        document.getElementById('copyECDSAPrivateBtn').disabled = false;
+        showStatus('✅ ECDSA私钥导入成功', 'success');
+      } catch (e) { showStatus('❌ 导入失败：'+e.message, 'error'); }
+    });
+
+    // ========== 加密 / 解密 主逻辑 ==========
+    encryptBtn.addEventListener('click', async () => {
+      hideStatus(); clearOps();
+      outputText.value = ''; downloadOutputBtn.style.display = 'none';
+      lastEncryptedFileData = lastEncryptedFileName = null;
+      try {
+        if (currentMode === 'text') {
+          const plain = plaintextInput.value;
+          if (!plain) { showStatus('⚠️ 请输入要加密的文字', 'warning'); return; }
+          setOps('正在加密…');
+          let result;
+          switch (currentLevel) {
+            case 1: result = caesarTextEncrypt(plain, parseInt(caesarShift.value) || 3); break;
+            case 2: {
+              const key = vigenereKeyInput.value.trim();
+              if (!key) throw new Error('请输入维吉尼亚密钥');
+              result = vigenereTextEncrypt(plain, key); break;
+            }
+            case 3: {
+              const pw = xorPasswordInput.value;
+              if (!pw) throw new Error('请输入XOR密码');
+              const buf = xorEncrypt(stringToArrayBuffer(plain), pw);
+              result = arrayBufferToBase64(buf); break;
+            }
+            case 4: {
+              const buf = stringToArrayBuffer(plain);
+              result = base64Encode(buf); break;
+            }
+            case 5: {
+              const pw = passwordInput.value;
+              if (!pw || pw.length < 6) throw new Error('密码至少6个字符');
+              const packed = await aesEncrypt(plain, pw);
+              result = arrayBufferToBase64(packed); break;
+            }
+            case 6: {
+              const pw = passwordInputL6.value;
+              if (!pw || pw.length < 6) throw new Error('AES密码至少6个字符');
+              const shift = parseInt(caesarShiftL6.value) || 7;
+              const aesPacked = await aesEncrypt(plain, pw);
+              const shifted = caesarShiftBytes(aesPacked, shift);
+              result = arrayBufferToBase64(shifted); break;
+            }
+            case 7: {
+              if (!rsaKeyPairL7 || !rsaKeyPairL7.publicKey) throw new Error('请先生成或导入RSA密钥对');
+              const packed = await rsaAesEncrypt(plain, rsaKeyPairL7.publicKey);
+              result = arrayBufferToBase64(packed); break;
+            }
+            case 8: {
+              if (!rsaKeyPairL8 || !rsaKeyPairL8.publicKey) throw new Error('请先生成RSA密钥对');
+              if (!ecdsaKeyPair || !ecdsaKeyPair.privateKey) throw new Error('请先生成ECDSA密钥对(需要私钥签名)');
+              const packed = await rsaAesEcdsaEncrypt(plain, rsaKeyPairL8.publicKey, ecdsaKeyPair.privateKey);
+              result = arrayBufferToBase64(packed); break;
+            }
+          }
+          outputText.value = result;
+          setOps('✅ 加密完成');
+          showStatus('✅ 文字加密成功！', 'success');
+        } else {
+          if (!fileInput.files.length) { showStatus('⚠️ 请选择文件', 'warning'); return; }
+          const file = fileInput.files[0];
+          setOps('正在读取文件…');
+          const fileBuffer = await file.arrayBuffer();
+          setOps('正在加密文件…');
+          let packed;
+          switch (currentLevel) {
+            case 1: packed = caesarShiftBytes(fileBuffer, parseInt(caesarShift.value) || 3); break;
+            case 2: {
+              const key = vigenereKeyInput.value.trim();
+              if (!key) throw new Error('请输入维吉尼亚密钥');
+              packed = vigenereBytesEncrypt(fileBuffer, key); break;
+            }
+            case 3: {
+              const pw = xorPasswordInput.value;
+              if (!pw) throw new Error('请输入XOR密码');
+              packed = xorEncrypt(fileBuffer, pw); break;
+            }
+            case 4: {
+              const b64 = base64Encode(fileBuffer);
+              packed = stringToArrayBuffer(b64); break;
+            }
+            case 5: {
+              const pw = passwordInput.value;
+              if (!pw || pw.length < 6) throw new Error('密码至少6个字符');
+              packed = await aesEncrypt(fileBuffer, pw); break;
+            }
+            case 6: {
+              const pw = passwordInputL6.value;
+              if (!pw || pw.length < 6) throw new Error('AES密码至少6个字符');
+              const shift = parseInt(caesarShiftL6.value) || 7;
+              const aesPacked = await aesEncrypt(fileBuffer, pw);
+              packed = caesarShiftBytes(aesPacked, shift); break;
+            }
+            case 7: {
+              if (!rsaKeyPairL7 || !rsaKeyPairL7.publicKey) throw new Error('请先生成或导入RSA密钥对');
+              packed = await rsaAesEncrypt(fileBuffer, rsaKeyPairL7.publicKey); break;
+            }
+            case 8: {
+              if (!rsaKeyPairL8 || !rsaKeyPairL8.publicKey) throw new Error('请先生成RSA密钥对');
+              if (!ecdsaKeyPair || !ecdsaKeyPair.privateKey) throw new Error('请先生成ECDSA密钥对');
+              packed = await rsaAesEcdsaEncrypt(fileBuffer, rsaKeyPairL8.publicKey, ecdsaKeyPair.privateKey); break;
+            }
+          }
+          lastEncryptedFileData = packed;
+          lastEncryptedFileName = file.name + '.enc';
+          outputText.value = `✅ 文件加密完成！\n原始：${file.name}\n加密后大小：${(packed.byteLength/1024).toFixed(2)} KB\n请点击下载按钮保存。`;
+          downloadOutputBtn.style.display = 'inline-block';
+          downloadOutputBtn.textContent = `💾 下载加密文件 (${file.name}.enc)`;
+          outputInfo.textContent = '加密文件已就绪';
+          setOps('✅ 文件加密完成');
+          showStatus('✅ 文件加密成功！', 'success');
+        }
+      } catch (e) {
+        console.error(e);
+        showStatus('❌ 加密失败：' + e.message, 'error');
+        setOps('加密失败');
+      }
+    });
+
+    decryptBtn.addEventListener('click', async () => {
+      hideStatus(); clearOps();
+      downloadOutputBtn.style.display = 'none';
+      lastDecryptedFileData = lastDecryptedFileName = null;
+      try {
+        if (currentMode === 'text') {
+          const cipherB64 = plaintextInput.value.trim();
+          if (!cipherB64) { showStatus('⚠️ 请粘贴密文', 'warning'); return; }
+          setOps('正在解密…');
+          let result;
+          switch (currentLevel) {
+            case 1: result = caesarTextDecrypt(cipherB64, parseInt(caesarShift.value) || 3); break;
+            case 2: {
+              const key = vigenereKeyInput.value.trim();
+              if (!key) throw new Error('请输入维吉尼亚密钥');
+              result = vigenereTextDecrypt(cipherB64, key); break;
+            }
+            case 3: {
+              const pw = xorPasswordInput.value;
+              if (!pw) throw new Error('请输入XOR密码');
+              const buf = base64ToArrayBuffer(cipherB64);
+              const dec = xorDecrypt(buf, pw);
+              result = arrayBufferToString(dec); break;
+            }
+            case 4: {
+              const buf = base64Decode(cipherB64);
+              result = arrayBufferToString(buf); break;
+            }
+            case 5: {
+              const pw = passwordInput.value;
+              if (!pw) throw new Error('请输入密码');
+              const packed = base64ToArrayBuffer(cipherB64);
+              const dec = await aesDecrypt(packed, pw);
+              result = arrayBufferToString(dec); break;
+            }
+            case 6: {
+              const pw = passwordInputL6.value;
+              if (!pw) throw new Error('请输入AES密码');
+              const shift = parseInt(caesarShiftL6.value) || 7;
+              const packed = base64ToArrayBuffer(cipherB64);
+              const unshifted = caesarUnshiftBytes(packed, shift);
+              const dec = await aesDecrypt(unshifted, pw);
+              result = arrayBufferToString(dec); break;
+            }
+            case 7: {
+              if (!rsaKeyPairL7 || !rsaKeyPairL7.privateKey) throw new Error('需要RSA私钥解密');
+              const packed = base64ToArrayBuffer(cipherB64);
+              const dec = await rsaAesDecrypt(packed, rsaKeyPairL7.privateKey);
+              result = arrayBufferToString(dec); break;
+            }
+            case 8: {
+              if (!rsaKeyPairL8 || !rsaKeyPairL8.privateKey) throw new Error('需要RSA私钥');
+              if (!ecdsaKeyPair || !ecdsaKeyPair.publicKey) throw new Error('需要ECDSA公钥验证签名');
+              const packed = base64ToArrayBuffer(cipherB64);
+              const dec = await rsaAesEcdsaDecrypt(packed, rsaKeyPairL8.privateKey, ecdsaKeyPair.publicKey);
+              result = arrayBufferToString(dec); break;
+            }
+          }
+          outputText.value = result;
+          setOps('✅ 解密完成');
+          showStatus(currentLevel===8 ? '✅ 解密成功，ECDSA签名验证通过。' : '✅ 解密成功！', 'success');
+        } else {
+          if (!fileInput.files.length) { showStatus('⚠️ 请选择要解密的文件', 'warning'); return; }
+          const file = fileInput.files[0];
+          setOps('正在读取文件…');
+          const fileBuffer = await file.arrayBuffer();
+          setOps('正在解密文件…');
+          let decrypted;
+          switch (currentLevel) {
+            case 1: decrypted = caesarUnshiftBytes(fileBuffer, parseInt(caesarShift.value) || 3); break;
+            case 2: {
+              const key = vigenereKeyInput.value.trim();
+              if (!key) throw new Error('请输入维吉尼亚密钥');
+              decrypted = vigenereBytesDecrypt(fileBuffer, key); break;
+            }
+            case 3: {
+              const pw = xorPasswordInput.value;
+              if (!pw) throw new Error('请输入XOR密码');
+              decrypted = xorDecrypt(fileBuffer, pw); break;
+            }
+            case 4: {
+              const str = arrayBufferToString(fileBuffer);
+              decrypted = base64Decode(str); break;
+            }
+            case 5: {
+              const pw = passwordInput.value;
+              if (!pw) throw new Error('请输入密码');
+              decrypted = await aesDecrypt(fileBuffer, pw); break;
+            }
+            case 6: {
+              const pw = passwordInputL6.value;
+              if (!pw) throw new Error('请输入AES密码');
+              const shift = parseInt(caesarShiftL6.value) || 7;
+              const unshifted = caesarUnshiftBytes(fileBuffer, shift);
+              decrypted = await aesDecrypt(unshifted, pw); break;
+            }
+            case 7: {
+              if (!rsaKeyPairL7 || !rsaKeyPairL7.privateKey) throw new Error('需要RSA私钥');
+              decrypted = await rsaAesDecrypt(fileBuffer, rsaKeyPairL7.privateKey); break;
+            }
+            case 8: {
+              if (!rsaKeyPairL8 || !rsaKeyPairL8.privateKey) throw new Error('需要RSA私钥');
+              if (!ecdsaKeyPair || !ecdsaKeyPair.publicKey) throw new Error('需要ECDSA公钥');
+              decrypted = await rsaAesEcdsaDecrypt(fileBuffer, rsaKeyPairL8.privateKey, ecdsaKeyPair.publicKey); break;
+            }
+          }
+          let outName = file.name.endsWith('.enc') ? file.name.slice(0,-4) : file.name + '.dec';
+          lastDecryptedFileData = decrypted;
+          lastDecryptedFileName = outName;
+          outputText.value = `✅ 文件解密完成！\n加密文件：${file.name}\n解密后大小：${(decrypted.byteLength/1024).toFixed(2)} KB\n请下载解密文件。`;
+          downloadOutputBtn.style.display = 'inline-block';
+          downloadOutputBtn.textContent = `💾 下载解密文件 (${outName})`;
+          outputInfo.textContent = '解密文件已就绪';
+          setOps('✅ 文件解密完成');
+          showStatus('✅ 文件解密成功！', 'success');
+        }
+      } catch (e) {
+        console.error(e);
+        showStatus('❌ 解密失败：' + e.message, 'error');
+        setOps('解密失败');
+      }
+    });
+
+    // 下载按钮
+    downloadOutputBtn.addEventListener('click', () => {
+      let data, filename;
+      if (lastEncryptedFileData) { data = lastEncryptedFileData; filename = lastEncryptedFileName; }
+      else if (lastDecryptedFileData) { data = lastDecryptedFileData; filename = lastDecryptedFileName; }
+      else { showStatus('⚠️ 没有可下载的文件', 'warning'); return; }
+      const blob = new Blob([data], { type: 'application/octet-stream' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showStatus('💾 下载已开始：' + filename, 'success');
+    });
+
+    // 复制输出
+    copyOutputBtn.addEventListener('click', async () => {
+      const val = outputText.value;
+      if (!val || val.startsWith('✅ 文件')) { showStatus('⚠️ 无可复制的文本', 'warning'); return; }
+      try { await navigator.clipboard.writeText(val); showStatus('📋 已复制', 'success'); }
+      catch { outputText.select(); document.execCommand('copy'); showStatus('📋 已复制', 'success'); }
+    });
+
+    // 清空
+    clearBtn.addEventListener('click', () => {
+      plaintextInput.value = '';
+      outputText.value = '';
+      if (fileInput.files.length) { fileInput.value = ''; fileInfo.textContent = '未选择文件'; }
+      downloadOutputBtn.style.display = 'none';
+      lastEncryptedFileData = lastEncryptedFileName = lastDecryptedFileData = lastDecryptedFileName = null;
+      outputInfo.textContent = '';
+      hideStatus(); clearOps();
+      showStatus('🗑️ 已清空所有输入输出', 'info');
+    });
+
+    // 初始化
+    updateKeyUI();
+    console.log('🔐 八级加密工具已启动');
+  })();
+</script>
+</body>
+</html>
