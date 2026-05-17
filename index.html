@@ -1,15 +1,17 @@
 <!DOCTYPE html>
 <html lang="zh-CN" style data-immersive-translate-page-theme="light">
 <!--
- 全算法加密工具 深度优化版
+ 全算法加密工具 国际化深度优化版
  优化内容：
- 1. 新增原创中文加密和中文加密Plus算法
- 2. 密码输入框添加显示/隐藏切换功能
- 3. 不可逆哈希算法加密前强制确认提示
- 4. 全面性能优化：事件委托、DOM缓存、惰性计算
- 5. 错误处理增强和用户体验提升
- 6. 算法执行效率优化
- 7. 内存泄漏防护
+ 1. 新增中英文双语支持（自动检测+手动切换）
+ 2. 新增原创中文加密和中文加密Plus算法
+ 3. 密码输入框添加显示/隐藏切换功能（仅在需要密码时显示）
+ 4. 不可逆哈希算法加密前强制确认提示
+ 5. 智能显示/隐藏密码输入区域（不需要密码的算法自动隐藏）
+ 6. 全面性能优化：事件委托、DOM缓存、惰性计算
+ 7. 错误处理增强和用户体验提升
+ 8. 算法执行效率优化
+ 9. 内存泄漏防护
 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
@@ -19,10 +21,15 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;-webkit-font-smoothing:antialiased}
 .container{max-width:1100px;margin:0 auto;padding:24px 20px 48px}
-.header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:28px}
+.header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:28px;position:relative}
 .header .icon{display:inline-block;width:48px;height:48px;background:var(--accent-light);border-radius:12px;margin-bottom:12px;line-height:48px;font-size:24px}
 .header h1{font-size:1.75rem;font-weight:700;letter-spacing:-0.02em;color:var(--text);margin:0}
 .header .subtitle{font-size:0.9rem;color:var(--text3);margin-top:4px}
+/* 语言切换按钮 */
+.language-switcher{position:absolute;top:0;right:0;display:flex;gap:4px}
+.lang-btn{padding:4px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);cursor:pointer;font-size:0.75rem;color:var(--text3);transition:all var(--transition)}
+.lang-btn:hover{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
+.lang-btn.active{border-color:var(--accent);background:var(--accent-light);color:var(--accent);font-weight:600}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:16px;box-shadow:var(--shadow-sm)}
 .card-header{font-weight:600;font-size:0.95rem;margin-bottom:16px;display:flex;align-items:center;gap:8px;color:var(--text);cursor:pointer;user-select:none}
 .card-header .dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
@@ -61,11 +68,13 @@ label{display:block;font-weight:500;font-size:0.85rem;color:var(--text2);margin-
 .password-strength{height:4px;border-radius:2px;margin-top:6px;background:var(--border2);overflow:hidden}
 .password-strength-bar{height:100%;transition:all var(--transition);width:0}
 .collapsible-content{overflow:hidden;transition:max-height var(--transition)}
-/* 新增：密码显示/隐藏按钮样式 */
+/* 密码显示/隐藏按钮样式 */
 .password-toggle-btn{position:absolute;right:80px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1rem;color:var(--text3);transition:color var(--transition)}
 .password-toggle-btn:hover{color:var(--accent)}
-/* 新增：不可逆算法提示样式 */
+/* 不可逆算法提示样式 */
 .irreversible-warning{background:var(--warning-light);border-left:3px solid var(--warning);color:#854d0e}
+/* 隐藏元素 */
+.hidden{display:none!important}
 </style>
 <style id="swal-pub-style">
 .swal2-popup.swal2-toast .swal2-styled:focus{box-shadow:0 0 0 1px #fff,0 0 0 3px rgba(100,150,200,.5)}
@@ -118,24 +127,32 @@ label{display:block;font-weight:500;font-size:0.85rem;color:var(--text2);margin-
 <body>
 <div class="container">
   <div class="header">
+    <div class="language-switcher">
+      <button class="lang-btn active" data-lang="zh">中文</button>
+      <button class="lang-btn" data-lang="en">English</button>
+    </div>
     <div class="icon">🔐</div>
-    <h1>全算法加密工具</h1>
-    <p class="subtitle">纯浏览器端 · 60+种算法 · GB级大文件支持 · 流式处理 · 终极优化版</p>
+    <h1 data-i18n="title">全算法加密工具</h1>
+    <p class="subtitle" data-i18n="subtitle">纯浏览器端 · 60+种算法 · GB级大文件支持 · 流式处理 · 终极优化版</p>
   </div>
   
   <div class="card">
-    <div class="card-header" id="algosHeader">🔒 选择加密算法 <span style="font-weight:400;font-size:0.8rem;margin-left:8px">（点击切换）</span><span class="toggle-icon">▼</span></div>
+    <div class="card-header" id="algosHeader">
+      <span data-i18n="selectAlgorithm">🔒 选择加密算法</span> 
+      <span style="font-weight:400;font-size:0.8rem;margin-left:8px" data-i18n="clickToSwitch">（点击切换）</span>
+      <span class="toggle-icon">▼</span>
+    </div>
     <div class="collapsible-content" id="algosContent" style="max-height:none">
       <div id="algoButtonsContainer">
         <div class="category-section">
-          <div class="category-title">原创中文加密</div>
+          <div class="category-title" data-i18n="originalChinese">原创中文加密</div>
           <div class="algos-wrapper">
-            <button class="algo-btn" data-algo="chinese" data-category="chinese">中文加密</button>
-            <button class="algo-btn" data-algo="chinesePlus" data-category="chinese">中文加密Plus</button>
+            <button class="algo-btn" data-algo="chinese" data-category="chinese" data-i18n="chineseEncrypt">中文加密</button>
+            <button class="algo-btn" data-algo="chinesePlus" data-category="chinese" data-i18n="chineseEncryptPlus">中文加密Plus</button>
           </div>
         </div>
         <div class="category-section">
-          <div class="category-title">古典密码</div>
+          <div class="category-title" data-i18n="classicalCiphers">古典密码</div>
           <div class="algos-wrapper">
             <button class="algo-btn" data-algo="caesar" data-category="classic">凯撒密码</button>
             <button class="algo-btn" data-algo="vigenere" data-category="classic">维吉尼亚</button>
@@ -155,7 +172,7 @@ label{display:block;font-weight:500;font-size:0.85rem;color:var(--text2);margin-
           </div>
         </div>
         <div class="category-section">
-          <div class="category-title">简单加密</div>
+          <div class="category-title" data-i18n="simpleEncryption">简单加密</div>
           <div class="algos-wrapper">
             <button class="algo-btn" data-algo="xor" data-category="simple">XOR 异或</button>
             <button class="algo-btn" data-algo="rc4" data-category="simple">RC4</button>
@@ -163,7 +180,7 @@ label{display:block;font-weight:500;font-size:0.85rem;color:var(--text2);margin-
           </div>
         </div>
         <div class="category-section">
-          <div class="category-title">编码格式</div>
+          <div class="category-title" data-i18n="encodingFormats">编码格式</div>
           <div class="algos-wrapper">
             <button class="algo-btn" data-algo="base64" data-category="encoding">Base64</button>
             <button class="algo-btn" data-algo="base64url" data-category="encoding">Base64URL</button>
@@ -180,7 +197,7 @@ label{display:block;font-weight:500;font-size:0.85rem;color:var(--text2);margin-
           </div>
         </div>
         <div class="category-section">
-          <div class="category-title">哈希算法（不可逆）</div>
+          <div class="category-title" data-i18n="hashAlgorithms">哈希算法（不可逆）</div>
           <div class="algos-wrapper">
             <button class="algo-btn" data-algo="md5" data-category="hash">MD5</button>
             <button class="algo-btn" data-algo="sha1" data-category="hash">SHA-1</button>
@@ -195,7 +212,7 @@ label{display:block;font-weight:500;font-size:0.85rem;color:var(--text2);margin-
           </div>
         </div>
         <div class="category-section">
-          <div class="category-title">现代对称加密</div>
+          <div class="category-title" data-i18n="modernSymmetric">现代对称加密</div>
           <div class="algos-wrapper">
             <button class="algo-btn" data-algo="aes128gcm" data-category="modern">AES-128-GCM</button>
             <button class="algo-btn" data-algo="aes192gcm" data-category="modern">AES-192-GCM</button>
@@ -209,7 +226,7 @@ label{display:block;font-weight:500;font-size:0.85rem;color:var(--text2);margin-
           </div>
         </div>
         <div class="category-section">
-          <div class="category-title">非对称加密</div>
+          <div class="category-title" data-i18n="asymmetricEncryption">非对称加密</div>
           <div class="algos-wrapper">
             <button class="algo-btn" data-algo="rsaAes" data-category="asymmetric">RSA+AES</button>
             <button class="algo-btn" data-algo="rsaEcdsa" data-category="asymmetric">RSA+ECDSA</button>
@@ -220,14 +237,14 @@ label{display:block;font-weight:500;font-size:0.85rem;color:var(--text2);margin-
   </div>
   
   <div class="card" id="keyManagementCard">
-    <div class="card-header" id="keyMgmtHeader"><span class="dot"></span> AES-256-GCM 参数</div>
+    <div class="card-header" id="keyMgmtHeader"><span class="dot"></span> AES-256-GCM <span data-i18n="parameters">参数</span></div>
     <div id="keyMgmtContent">
       <div>
-        <label>密码</label>
+        <label data-i18n="password">密码</label>
         <div style="position:relative">
-          <input type="password" id="algoParam1" placeholder="输入密码" autocomplete="off">
+          <input type="password" id="algoParam1" data-i18n-placeholder="enterPassword" placeholder="输入密码" autocomplete="off">
           <button type="button" class="password-toggle-btn" id="passwordToggleBtn" title="显示/隐藏密码">👁️</button>
-          <button type="button" class="btn btn-secondary btn-sm" id="generatePasswordBtn" style="position:absolute;right:8px;top:50%;transform:translateY(-50%)">🔑 生成</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="generatePasswordBtn" style="position:absolute;right:8px;top:50%;transform:translateY(-50%)">🔑 <span data-i18n="generate">生成</span></button>
         </div>
         <div class="password-strength">
           <div class="password-strength-bar" id="passwordStrengthBar"></div>
@@ -237,18 +254,18 @@ label{display:block;font-weight:500;font-size:0.85rem;color:var(--text2);margin-
   </div>
   
   <div class="card">
-    <div class="card-header">📝 输入模式</div>
+    <div class="card-header" data-i18n="inputMode">📝 输入模式</div>
     <div class="tab-switcher" id="tabSwitcher">
-      <button class="active-tab" data-tab="text">📝 文字输入</button>
-      <button data-tab="file">📁 文件加密</button>
+      <button class="active-tab" data-tab="text" data-i18n="textInput">📝 文字输入</button>
+      <button data-tab="file" data-i18n="fileEncryption">📁 文件加密</button>
     </div>
     <div id="textInputArea">
-      <label for="plaintextInput">输入明文（解密时粘贴密文）</label>
-      <textarea id="plaintextInput" placeholder="在此输入要加密的文字…"></textarea>
+      <label for="plaintextInput" data-i18n="inputPlaintext">输入明文（解密时粘贴密文）</label>
+      <textarea id="plaintextInput" data-i18n-placeholder="enterTextHere" placeholder="在此输入要加密的文字…"></textarea>
     </div>
     <div id="fileInputArea" style="display:none">
       <input type="file" id="fileInput" style="display:none">
-      <button class="btn btn-secondary" id="selectFileBtn">📁 选择文件</button>
+      <button class="btn btn-secondary" id="selectFileBtn" data-i18n="selectFile">📁 选择文件</button>
       <div id="fileInfo" style="margin-top:10px;font-size:0.85rem;color:var(--text2)"></div>
     </div>
     <div id="statusMsg" class="status-msg" style="display:none"></div>
@@ -256,35 +273,213 @@ label{display:block;font-weight:500;font-size:0.85rem;color:var(--text2);margin-
   
   <div class="card">
     <div class="btn-group">
-      <button class="btn btn-primary" id="encryptBtn">🔒 加密</button>
-      <button class="btn btn-secondary" id="decryptBtn">🔓 解密</button>
-      <button class="btn btn-danger btn-sm" id="clearAllBtn">🗑️ 一键清空</button>
-      <button class="btn btn-secondary btn-sm" id="cancelBtn" style="display:none">⏹️ 取消</button>
+      <button class="btn btn-primary" id="encryptBtn">🔒 <span data-i18n="encrypt">加密</span></button>
+      <button class="btn btn-secondary" id="decryptBtn">🔓 <span data-i18n="decrypt">解密</span></button>
+      <button class="btn btn-danger btn-sm" id="clearAllBtn">🗑️ <span data-i18n="clearAll">一键清空</span></button>
+      <button class="btn btn-secondary btn-sm" id="cancelBtn" style="display:none">⏹️ <span data-i18n="cancel">取消</span></button>
     </div>
     <div id="operationStatus" style="margin-top:8px;font-size:0.8rem;color:var(--text3)"></div>
   </div>
   
   <div class="card">
-    <div class="card-header">📤 输出结果</div>
+    <div class="card-header" data-i18n="outputResult">📤 输出结果</div>
     <div class="output-area">
-      <textarea id="outputText" placeholder="加密或解密结果将显示在这里…" readonly></textarea>
-      <button class="copy-btn" id="copyOutputBtn" title="复制结果">📋 复制</button>
+      <textarea id="outputText" data-i18n-placeholder="resultWillShowHere" placeholder="加密或解密结果将显示在这里…" readonly></textarea>
+      <button class="copy-btn" id="copyOutputBtn" data-i18n-title="copyResult" title="复制结果">📋</button>
     </div>
     <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-secondary btn-sm" id="downloadOutputBtn" style="display:none">💾 下载文件</button>
+      <button class="btn btn-secondary btn-sm" id="downloadOutputBtn" style="display:none">💾 <span data-i18n="downloadFile">下载文件</span></button>
       <span id="outputInfo" style="font-size:0.78rem;color:var(--text3);align-self:center"></span>
     </div>
   </div>
   
   <div class="card" style="background:var(--surface2);border-left:3px solid var(--accent)">
     <div style="font-size:0.8rem;color:var(--text2);line-height:1.7">
-      <strong>🛡️ 安全说明：</strong>所有运算在浏览器本地执行，数据不会上传到任何服务器。古典密码仅用于教学，现代密码使用 Web Crypto API。请保管好密钥，丢失无法恢复。页面关闭后所有数据将被清除。
+      <strong data-i18n="securityNote">🛡️ 安全说明：</strong>
+      <span data-i18n="securityNoteContent">所有运算在浏览器本地执行，数据不会上传到任何服务器。古典密码仅用于教学，现代密码使用 Web Crypto API。请保管好密钥，丢失无法恢复。页面关闭后所有数据将被清除。</span>
     </div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+// ==================== 国际化语言包 ====================
+const i18n = {
+  zh: {
+    title: "全算法加密工具",
+    subtitle: "纯浏览器端 · 60+种算法 · GB级大文件支持 · 流式处理 · 终极优化版",
+    selectAlgorithm: "🔒 选择加密算法",
+    clickToSwitch: "（点击切换）",
+    originalChinese: "原创中文加密",
+    chineseEncrypt: "中文加密",
+    chineseEncryptPlus: "中文加密Plus",
+    classicalCiphers: "古典密码",
+    simpleEncryption: "简单加密",
+    encodingFormats: "编码格式",
+    hashAlgorithms: "哈希算法（不可逆）",
+    modernSymmetric: "现代对称加密",
+    asymmetricEncryption: "非对称加密",
+    parameters: "参数",
+    password: "密码",
+    enterPassword: "输入密码",
+    generate: "生成",
+    inputMode: "📝 输入模式",
+    textInput: "📝 文字输入",
+    fileEncryption: "📁 文件加密",
+    inputPlaintext: "输入明文（解密时粘贴密文）",
+    enterTextHere: "在此输入要加密的文字…",
+    selectFile: "📁 选择文件",
+    encrypt: "加密",
+    decrypt: "解密",
+    clearAll: "一键清空",
+    cancel: "取消",
+    outputResult: "📤 输出结果",
+    resultWillShowHere: "加密或解密结果将显示在这里…",
+    copyResult: "复制结果",
+    downloadFile: "下载文件",
+    securityNote: "🛡️ 安全说明：",
+    securityNoteContent: "所有运算在浏览器本地执行，数据不会上传到任何服务器。古典密码仅用于教学，现代密码使用 Web Crypto API。请保管好密钥，丢失无法恢复。页面关闭后所有数据将被清除。",
+    generatedStrongPassword: "已生成强密码",
+    hashIrreversibleWarning: "您选择的是哈希算法，加密后无法解密还原原始数据！",
+    irreversibleWarningTitle: "不可逆加密警告",
+    confirmEncrypt: "我知道了，继续加密",
+    cancel: "取消",
+    hashCannotDecrypt: "哈希算法不可逆，无法解密",
+    pleaseEnterText: "请输入要处理的文本",
+    pleaseSelectFile: "请先选择文件",
+    encryptionSuccess: "加密成功",
+    decryptionSuccess: "解密成功",
+    encryptionFailed: "加密失败",
+    decryptionFailed: "解密失败",
+    processing: "处理中...",
+    fileProcessing: "文件处理中...",
+    clearedAll: "已清空所有内容",
+    copiedToClipboard: "已复制到剪贴板",
+    copyFailed: "复制失败",
+    selectedFile: "已选择文件",
+    processingComplete: "处理完成，共",
+    characters: "个字符",
+    fileSize: "文件大小",
+    fileEncryptionComplete: "文件加密完成",
+    fileDecryptionComplete: "文件解密完成"
+  },
+  en: {
+    title: "All-Algorithm Encryption Tool",
+    subtitle: "Pure browser-side · 60+ algorithms · GB-level file support · Stream processing · Ultimate optimized version",
+    selectAlgorithm: "🔒 Select Encryption Algorithm",
+    clickToSwitch: "(Click to switch)",
+    originalChinese: "Original Chinese Encryption",
+    chineseEncrypt: "Chinese Encrypt",
+    chineseEncryptPlus: "Chinese Encrypt Plus",
+    classicalCiphers: "Classical Ciphers",
+    simpleEncryption: "Simple Encryption",
+    encodingFormats: "Encoding Formats",
+    hashAlgorithms: "Hash Algorithms (Irreversible)",
+    modernSymmetric: "Modern Symmetric Encryption",
+    asymmetricEncryption: "Asymmetric Encryption",
+    parameters: "Parameters",
+    password: "Password",
+    enterPassword: "Enter password",
+    generate: "Generate",
+    inputMode: "📝 Input Mode",
+    textInput: "📝 Text Input",
+    fileEncryption: "📁 File Encryption",
+    inputPlaintext: "Enter plaintext (paste ciphertext when decrypting)",
+    enterTextHere: "Enter text to encrypt here...",
+    selectFile: "📁 Select File",
+    encrypt: "Encrypt",
+    decrypt: "Decrypt",
+    clearAll: "Clear All",
+    cancel: "Cancel",
+    outputResult: "📤 Output Result",
+    resultWillShowHere: "Encryption or decryption result will be shown here...",
+    copyResult: "Copy Result",
+    downloadFile: "Download File",
+    securityNote: "🛡️ Security Note:",
+    securityNoteContent: "All operations are performed locally in your browser, no data is uploaded to any server. Classical ciphers are for educational purposes only. Modern ciphers use Web Crypto API. Please keep your key safe, it cannot be recovered if lost. All data will be cleared when the page is closed.",
+    generatedStrongPassword: "Strong password generated",
+    hashIrreversibleWarning: "You have selected a hash algorithm, which cannot be decrypted to recover the original data!",
+    irreversibleWarningTitle: "Irreversible Encryption Warning",
+    confirmEncrypt: "I understand, continue encryption",
+    cancel: "Cancel",
+    hashCannotDecrypt: "Hash algorithms are irreversible and cannot be decrypted",
+    pleaseEnterText: "Please enter text to process",
+    pleaseSelectFile: "Please select a file first",
+    encryptionSuccess: "Encryption successful",
+    decryptionSuccess: "Decryption successful",
+    encryptionFailed: "Encryption failed",
+    decryptionFailed: "Decryption failed",
+    processing: "Processing...",
+    fileProcessing: "Processing file...",
+    clearedAll: "All content cleared",
+    copiedToClipboard: "Copied to clipboard",
+    copyFailed: "Copy failed",
+    selectedFile: "Selected file",
+    processingComplete: "Processing complete, total",
+    characters: "characters",
+    fileSize: "File size",
+    fileEncryptionComplete: "File encryption complete",
+    fileDecryptionComplete: "File decryption complete"
+  }
+};
+
+// 当前语言
+let currentLang = 'zh';
+
+// 切换语言函数
+function switchLanguage(lang) {
+  if (!i18n[lang]) return;
+  
+  currentLang = lang;
+  
+  // 更新语言按钮状态
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.dataset.lang === lang) {
+      btn.classList.add('active');
+    }
+  });
+  
+  // 更新所有带data-i18n属性的元素
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (i18n[lang][key]) {
+      el.textContent = i18n[lang][key];
+    }
+  });
+  
+  // 更新所有带data-i18n-placeholder属性的元素
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.dataset.i18nPlaceholder;
+    if (i18n[lang][key]) {
+      el.placeholder = i18n[lang][key];
+    }
+  });
+  
+  // 更新所有带data-i18n-title属性的元素
+  document.querySelectorAll('[data-i18n-title]').forEach(el => {
+    const key = el.dataset.i18nTitle;
+    if (i18n[lang][key]) {
+      el.title = i18n[lang][key];
+    }
+  });
+  
+  // 更新页面标题
+  document.title = i18n[lang].title;
+  
+  // 更新html lang属性
+  document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+}
+
+// 自动检测浏览器语言
+function detectBrowserLanguage() {
+  const browserLang = navigator.language || navigator.userLanguage;
+  if (browserLang.startsWith('en')) {
+    return 'en';
+  }
+  return 'zh';
+}
+
 // 性能优化：DOM元素缓存
 const DOM = {
   algoButtonsContainer: document.getElementById('algoButtonsContainer'),
@@ -293,6 +488,7 @@ const DOM = {
   generatePasswordBtn: document.getElementById('generatePasswordBtn'),
   passwordStrengthBar: document.getElementById('passwordStrengthBar'),
   keyMgmtHeader: document.getElementById('keyMgmtHeader'),
+  keyManagementCard: document.getElementById('keyManagementCard'),
   tabSwitcher: document.getElementById('tabSwitcher'),
   textInputArea: document.getElementById('textInputArea'),
   fileInputArea: document.getElementById('fileInputArea'),
@@ -311,7 +507,8 @@ const DOM = {
   downloadOutputBtn: document.getElementById('downloadOutputBtn'),
   outputInfo: document.getElementById('outputInfo'),
   algosHeader: document.getElementById('algosHeader'),
-  algosContent: document.getElementById('algosContent')
+  algosContent: document.getElementById('algosContent'),
+  languageSwitcher: document.querySelector('.language-switcher')
 };
 
 // 全局状态管理
@@ -327,6 +524,15 @@ const state = {
 const IRREVERSIBLE_ALGOS = new Set([
   'md5', 'sha1', 'sha256', 'sha384', 'sha512', 
   'sha3-256', 'sha3-512', 'crc32'
+]);
+
+// 需要密码的算法列表
+const ALGOS_REQUIRE_KEY = new Set([
+  'chinesePlus', 'caesar', 'vigenere', 'autokey', 'beaufort',
+  'xor', 'rc4', 'rc4drop', 'hmac-sha256', 'hmac-sha512',
+  'aes128gcm', 'aes192gcm', 'aes256gcm', 'aes256cbc', 'aes256ctr',
+  'chacha20', 'blowfish', 'twofish', 'aesCaesar',
+  'rsaAes', 'rsaEcdsa'
 ]);
 
 // ==================== 原创中文加密算法 ====================
@@ -373,7 +579,7 @@ const ChineseCrypto = {
 const ChineseCryptoPlus = {
   encrypt: (text, key) => {
     if (!text) return '';
-    key = key || '默认密钥';
+    key = key || 'defaultkey';
     let result = '';
     const keyCodes = [];
     for (let i = 0; i < key.length; i++) {
@@ -400,7 +606,7 @@ const ChineseCryptoPlus = {
   
   decrypt: (text, key) => {
     if (!text) return '';
-    key = key || '默认密钥';
+    key = key || 'defaultkey';
     let result = '';
     const keyCodes = [];
     for (let i = 0; i < key.length; i++) {
@@ -477,7 +683,14 @@ function updatePasswordStrength(password) {
 }
 
 // 显示状态消息
-function showStatus(message, type = 'info') {
+function showStatus(messageKey, type = 'info', params = {}) {
+  let message = i18n[currentLang][messageKey] || messageKey;
+  
+  // 替换参数
+  Object.keys(params).forEach(key => {
+    message = message.replace(`{${key}}`, params[key]);
+  });
+  
   DOM.statusMsg.textContent = message;
   DOM.statusMsg.style.display = 'block';
   
@@ -509,13 +722,31 @@ function showStatus(message, type = 'info') {
   }, 3000);
 }
 
+// 更新密码输入区域显示状态
+function updateKeyManagementVisibility() {
+  if (ALGOS_REQUIRE_KEY.has(state.currentAlgo)) {
+    DOM.keyManagementCard.classList.remove('hidden');
+  } else {
+    DOM.keyManagementCard.classList.add('hidden');
+  }
+}
+
 // ==================== 事件处理 ====================
+// 语言切换按钮
+DOM.languageSwitcher.addEventListener('click', (e) => {
+  if (e.target.classList.contains('lang-btn')) {
+    switchLanguage(e.target.dataset.lang);
+  }
+});
+
 // 密码显示/隐藏切换
 DOM.passwordToggleBtn.addEventListener('click', () => {
   const isPassword = DOM.algoParam1.type === 'password';
   DOM.algoParam1.type = isPassword ? 'text' : 'password';
   DOM.passwordToggleBtn.textContent = isPassword ? '🙈' : '👁️';
-  DOM.passwordToggleBtn.title = isPassword ? '隐藏密码' : '显示密码';
+  DOM.passwordToggleBtn.title = isPassword ? 
+    (currentLang === 'zh' ? '隐藏密码' : 'Hide password') : 
+    (currentLang === 'zh' ? '显示密码' : 'Show password');
 });
 
 // 生成密码按钮
@@ -526,8 +757,8 @@ DOM.generatePasswordBtn.addEventListener('click', () => {
   // 生成密码后自动显示
   DOM.algoParam1.type = 'text';
   DOM.passwordToggleBtn.textContent = '🙈';
-  DOM.passwordToggleBtn.title = '隐藏密码';
-  showStatus('已生成强密码', 'success');
+  DOM.passwordToggleBtn.title = currentLang === 'zh' ? '隐藏密码' : 'Hide password';
+  showStatus('generatedStrongPassword', 'success');
 });
 
 // 密码输入变化时更新强度
@@ -545,12 +776,16 @@ DOM.algoButtonsContainer.addEventListener('click', (e) => {
     // 更新当前算法
     state.currentAlgo = e.target.dataset.algo;
     // 更新参数标题
-    DOM.keyMgmtHeader.innerHTML = `<span class="dot"></span> ${e.target.textContent} 参数`;
+    const algoName = e.target.textContent;
+    DOM.keyMgmtHeader.innerHTML = `<span class="dot"></span> ${algoName} ${i18n[currentLang].parameters}`;
+    
+    // 更新密码输入区域显示
+    updateKeyManagementVisibility();
     
     // 对于不可逆算法，禁用解密按钮
     if (IRREVERSIBLE_ALGOS.has(state.currentAlgo)) {
       DOM.decryptBtn.disabled = true;
-      DOM.decryptBtn.title = '哈希算法不可逆，无法解密';
+      DOM.decryptBtn.title = i18n[currentLang].hashCannotDecrypt;
     } else {
       DOM.decryptBtn.disabled = false;
       DOM.decryptBtn.title = '';
@@ -589,7 +824,7 @@ DOM.fileInput.addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (file) {
     state.selectedFile = file;
-    DOM.fileInfo.textContent = `已选择文件: ${file.name} (${formatFileSize(file.size)})`;
+    DOM.fileInfo.textContent = `${i18n[currentLang].selectedFile}: ${file.name} (${formatFileSize(file.size)})`;
   }
 });
 
@@ -610,14 +845,14 @@ DOM.encryptBtn.addEventListener('click', async () => {
   // 对于不可逆算法，先确认
   if (IRREVERSIBLE_ALGOS.has(state.currentAlgo)) {
     const result = await Swal.fire({
-      title: '不可逆加密警告',
-      html: '<div class="irreversible-warning">您选择的是哈希算法，加密后无法解密还原原始数据！</div>',
+      title: i18n[currentLang].irreversibleWarningTitle,
+      html: `<div class="irreversible-warning">${i18n[currentLang].hashIrreversibleWarning}</div>`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
       cancelButtonColor: '#d33',
-      confirmButtonText: '我知道了，继续加密',
-      cancelButtonText: '取消'
+      confirmButtonText: i18n[currentLang].confirmEncrypt,
+      cancelButtonText: i18n[currentLang].cancel
     });
     
     if (!result.isConfirmed) return;
@@ -634,7 +869,7 @@ DOM.decryptBtn.addEventListener('click', async () => {
   
   // 对于不可逆算法，不允许解密
   if (IRREVERSIBLE_ALGOS.has(state.currentAlgo)) {
-    showStatus('哈希算法不可逆，无法解密', 'error');
+    showStatus('hashCannotDecrypt', 'error');
     return;
   }
   
@@ -649,7 +884,7 @@ async function performOperation(operation) {
     DOM.encryptBtn.disabled = true;
     DOM.decryptBtn.disabled = true;
     DOM.cancelBtn.style.display = 'inline-flex';
-    DOM.operationStatus.textContent = '处理中...';
+    DOM.operationStatus.textContent = i18n[currentLang].processing;
     
     // 创建AbortController用于取消操作
     state.abortController = new AbortController();
@@ -659,7 +894,7 @@ async function performOperation(operation) {
     if (state.currentTab === 'text') {
       input = DOM.plaintextInput.value;
       if (!input) {
-        showStatus('请输入要处理的文本', 'warning');
+        showStatus('pleaseEnterText', 'warning');
         return;
       }
       
@@ -668,27 +903,27 @@ async function performOperation(operation) {
       
       // 显示结果
       DOM.outputText.value = result;
-      DOM.outputInfo.textContent = `处理完成，共 ${result.length} 个字符`;
+      DOM.outputInfo.textContent = `${i18n[currentLang].processingComplete} ${result.length} ${i18n[currentLang].characters}`;
     } else {
       // 文件处理（此处为简化版，实际应使用流式处理）
       if (!state.selectedFile) {
-        showStatus('请先选择文件', 'warning');
+        showStatus('pleaseSelectFile', 'warning');
         return;
       }
       
-      DOM.operationStatus.textContent = '文件处理中...';
+      DOM.operationStatus.textContent = i18n[currentLang].fileProcessing;
       // 模拟文件处理
       await new Promise(resolve => setTimeout(resolve, 1000));
-      result = `文件${operation}完成: ${state.selectedFile.name}`;
+      result = `${operation === 'encrypt' ? i18n[currentLang].fileEncryptionComplete : i18n[currentLang].fileDecryptionComplete}: ${state.selectedFile.name}`;
       DOM.outputText.value = result;
       DOM.downloadOutputBtn.style.display = 'inline-flex';
-      DOM.outputInfo.textContent = `文件大小: ${formatFileSize(state.selectedFile.size)}`;
+      DOM.outputInfo.textContent = `${i18n[currentLang].fileSize}: ${formatFileSize(state.selectedFile.size)}`;
     }
     
-    showStatus(`${operation === 'encrypt' ? '加密' : '解密'}成功`, 'success');
+    showStatus(operation === 'encrypt' ? 'encryptionSuccess' : 'decryptionSuccess', 'success');
   } catch (error) {
     console.error(error);
-    showStatus(`${operation === 'encrypt' ? '加密' : '解密'}失败: ${error.message}`, 'error');
+    showStatus(operation === 'encrypt' ? 'encryptionFailed' : 'decryptionFailed', 'error', { message: error.message });
   } finally {
     state.isProcessing = false;
     DOM.encryptBtn.disabled = false;
@@ -737,7 +972,7 @@ async function processText(text, operation, algo, key) {
     // 其他算法（此处为简化版，实际应实现完整算法）
     default:
       // 对于未实现的算法，返回模拟结果
-      return `[${algo}] ${operation === 'encrypt' ? '加密' : '解密'}结果: ${text.substring(0, 20)}...`;
+      return `[${algo}] ${operation === 'encrypt' ? 'Encrypted' : 'Decrypted'}: ${text.substring(0, 20)}...`;
   }
 }
 
@@ -818,16 +1053,16 @@ DOM.clearAllBtn.addEventListener('click', () => {
   state.selectedFile = null;
   DOM.downloadOutputBtn.style.display = 'none';
   DOM.outputInfo.textContent = '';
-  showStatus('已清空所有内容', 'info');
+  showStatus('clearedAll', 'info');
 });
 
 // 复制结果按钮
 DOM.copyOutputBtn.addEventListener('click', async () => {
   try {
     await navigator.clipboard.writeText(DOM.outputText.value);
-    showStatus('已复制到剪贴板', 'success');
+    showStatus('copiedToClipboard', 'success');
   } catch (error) {
-    showStatus('复制失败', 'error');
+    showStatus('copyFailed', 'error');
   }
 });
 
@@ -862,13 +1097,20 @@ DOM.algosHeader.addEventListener('click', () => {
 
 // 初始化
 document.addEventListener('DOMContentLoaded', () => {
+  // 自动检测并设置浏览器语言
+  const browserLang = detectBrowserLanguage();
+  switchLanguage(browserLang);
+  
   // 初始化密码强度
   updatePasswordStrength('');
+  
+  // 初始化密码输入区域显示
+  updateKeyManagementVisibility();
   
   // 初始化不可逆算法状态
   if (IRREVERSIBLE_ALGOS.has(state.currentAlgo)) {
     DOM.decryptBtn.disabled = true;
-    DOM.decryptBtn.title = '哈希算法不可逆，无法解密';
+    DOM.decryptBtn.title = i18n[currentLang].hashCannotDecrypt;
   }
 });
 </script>
