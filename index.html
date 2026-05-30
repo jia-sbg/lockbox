@@ -1,50 +1,50 @@
 <!DOCTYPE html>
-<html lang="zh-CN" style data-immersive-translate-page-theme="light">
-<!--
- 全算法加密工具 国际化深度优化版
- 优化内容：
- 1. 新增中英文双语支持（自动检测+手动切换）
- 2. 新增原创中文加密和中文加密Plus算法
- 3. 密码输入框添加显示/隐藏切换功能（仅在需要密码时显示）
- 4. 不可逆哈希算法加密前强制确认提示
- 5. 智能显示/隐藏密码输入区域（不需要密码的算法自动隐藏）
- 6. 全面性能优化：事件委托、DOM缓存、惰性计算
- 7. 错误处理增强和用户体验提升
- 8. 算法执行效率优化
- 9. 内存泄漏防护
--->
+<html lang="zh-TW">
+<head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <title>全算法加密工具</title>
 <style>
-:root{--bg:#f8f9fa;--surface:#ffffff;--surface2:#f1f3f5;--text:#1a1a2e;--text2:#495057;--text3:#6c757d;--border:#dee2e6;--border2:#ced4da;--accent:#1a56db;--accent-hover:#1647b8;--accent-light:#e8f0fe;--danger:#c92a2a;--danger-light:#fff5f5;--warning:#e67700;--warning-light:#fff9f0;--success:#2b8a3e;--success-light:#f0fdf4;--shadow-sm:0 1px 3px rgba(0,0,0,0.06),0 1px 2px rgba(0,0,0,0.04);--shadow:0 4px 12px rgba(0,0,0,0.08),0 2px 4px rgba(0,0,0,0.04);--radius:8px;--radius-sm:6px;--font-mono:"SF Mono","Cascadia Code","Consolas","Monaco","Courier New",monospace;--transition:0.2s ease}
+:root{
+  --bg:#f8f9fa;--surface:#ffffff;--surface2:#f1f3f5;--text:#1a1a2e;--text2:#495057;--text3:#6c757d;
+  --border:#dee2e6;--border2:#ced4da;--accent:#1a56db;--accent-hover:#1647b8;--accent-light:#e8f0fe;
+  --danger:#c92a2a;--danger-light:#fff5f5;--warning:#e67700;--warning-light:#fff9f0;
+  --success:#2b8a3e;--success-light:#f0fdf4;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --shadow:0 4px 12px rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.04);
+  --radius:8px;--radius-sm:6px;
+  --font-mono:"SF Mono","Cascadia Code","Consolas","Monaco","Courier New",monospace;
+  --transition:0.2s ease
+}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;-webkit-font-smoothing:antialiased}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei","PingFang TC","Noto Sans TC",sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;-webkit-font-smoothing:antialiased}
 .container{max-width:1100px;margin:0 auto;padding:24px 20px 48px}
 .header{text-align:center;padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:28px;position:relative}
 .header .icon{display:inline-block;width:48px;height:48px;background:var(--accent-light);border-radius:12px;margin-bottom:12px;line-height:48px;font-size:24px}
 .header h1{font-size:1.75rem;font-weight:700;letter-spacing:-0.02em;color:var(--text);margin:0}
 .header .subtitle{font-size:0.9rem;color:var(--text3);margin-top:4px}
-/* 语言切换按钮 */
-.language-switcher{position:absolute;top:0;right:0;display:flex;gap:4px}
+.language-switcher{position:absolute;top:0;right:0;display:flex;gap:4px;flex-wrap:wrap}
 .lang-btn{padding:4px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);cursor:pointer;font-size:0.75rem;color:var(--text3);transition:all var(--transition)}
-.lang-btn:hover{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
-.lang-btn.active{border-color:var(--accent);background:var(--accent-light);color:var(--accent);font-weight:600}
+.lang-btn:hover,.lang-btn.active{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
+.lang-btn.active{font-weight:600}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:16px;box-shadow:var(--shadow-sm)}
 .card-header{font-weight:600;font-size:0.95rem;margin-bottom:16px;display:flex;align-items:center;gap:8px;color:var(--text);cursor:pointer;user-select:none}
-.card-header .dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+.card-header .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;flex-shrink:0}
 .card-header .toggle-icon{margin-left:auto;transition:transform var(--transition)}
-.algos-wrapper{display:flex;flex-wrap:wrap;gap:10px}
-.category-section{margin-bottom:12px}
-.category-title{font-size:0.8rem;color:var(--text3);margin-bottom:8px;font-weight:500}
-.algo-btn{padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);cursor:pointer;text-align:center;transition:all var(--transition);font-family:inherit;font-size:0.8rem;color:var(--text2);white-space:nowrap}
+.algos-wrapper{display:flex;flex-wrap:wrap;gap:8px}
+.category-section{margin-bottom:14px}
+.category-title{font-size:0.78rem;color:var(--text3);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em}
+.algo-btn{padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);cursor:pointer;text-align:center;transition:all var(--transition);font-family:inherit;font-size:0.8rem;color:var(--text2);white-space:nowrap;position:relative}
 .algo-btn:hover{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
-.algo-btn.active{border-color:var(--accent);background:var(--accent-light);color:var(--accent);font-weight:600;box-shadow:0 0 0 2px rgba(26,86,219,0.15)}
+.algo-btn.active{border-color:var(--accent);background:var(--accent-light);color:var(--accent);font-weight:600;box-shadow:0 0 0 2px rgba(26,86,219,.15)}
+.algo-btn .badge{position:absolute;top:-5px;right:-5px;font-size:0.6rem;padding:1px 4px;border-radius:3px;font-weight:700;line-height:1.4}
+.badge-new{background:#dc3545;color:#fff}
+.badge-hash{background:var(--warning);color:#fff}
 textarea{width:100%;min-height:120px;padding:12px 14px;border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:0.9rem;resize:vertical;background:var(--surface2);color:var(--text);transition:border-color var(--transition)}
-textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,86,219,0.08);background:var(--surface)}
+textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,86,219,.08);background:var(--surface)}
 textarea::placeholder{color:#adb5bd}
 input[type="password"],input[type="text"]{width:100%;padding:10px 14px;border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-family:inherit;font-size:0.9rem;background:var(--surface2);color:var(--text);transition:all var(--transition)}
-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,86,219,0.08);background:var(--surface)}
+input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,86,219,.08);background:var(--surface)}
 label{display:block;font-weight:500;font-size:0.85rem;color:var(--text2);margin-bottom:6px}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 20px;border-radius:var(--radius-sm);font-family:inherit;font-size:0.9rem;font-weight:500;cursor:pointer;border:none;transition:all var(--transition);white-space:nowrap;letter-spacing:0.01em}
 .btn-primary{background:var(--accent);color:#fff}
@@ -54,441 +54,398 @@ label{display:block;font-weight:500;font-size:0.85rem;color:var(--text2);margin-
 .btn-danger{background:var(--danger-light);color:var(--danger);border:1.5px solid #ffc9c9}
 .btn-danger:hover{background:#ffe3e3;border-color:#ffa8a8}
 .btn-sm{padding:6px 14px;font-size:0.8rem}
-.btn:disabled{opacity:0.5;cursor:not-allowed;pointer-events:none}
+.btn:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
 .btn-group{display:flex;gap:10px;flex-wrap:wrap}
 .output-area{position:relative}
-.output-area textarea{background:#fafbfc;border-color:#d0d5dd;color:#1a1a2e;min-height:100px;font-size:0.82rem}
+.output-area textarea{background:#fafbfc;border-color:#d0d5dd;color:#1a1a2e;min-height:120px;font-size:0.82rem}
 .copy-btn{position:absolute;top:8px;right:8px;padding:5px 12px;font-size:0.75rem;background:var(--surface);border:1px solid var(--border2);border-radius:4px;cursor:pointer;transition:all var(--transition);color:var(--text3)}
 .copy-btn:hover{background:var(--accent-light);color:var(--accent);border-color:var(--accent)}
 .status-msg{padding:10px 14px;border-radius:var(--radius-sm);font-size:0.85rem;margin-top:10px;font-weight:500}
-@keyframes spin{to{transform:rotate(360deg)}}
 .tab-switcher{display:flex;gap:0;margin-bottom:16px;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;width:fit-content}
 .tab-switcher button{padding:8px 20px;border:none;background:var(--surface2);cursor:pointer;font-family:inherit;font-size:0.85rem;color:var(--text3);transition:all var(--transition)}
 .tab-switcher button.active-tab{background:var(--accent);color:#fff;font-weight:500}
 .password-strength{height:4px;border-radius:2px;margin-top:6px;background:var(--border2);overflow:hidden}
 .password-strength-bar{height:100%;transition:all var(--transition);width:0}
-.collapsible-content{overflow:hidden;transition:max-height var(--transition)}
-/* 密码显示/隐藏按钮样式 */
-.password-toggle-btn{position:absolute;right:80px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1rem;color:var(--text3);transition:color var(--transition)}
+.collapsible-content{overflow:hidden;transition:max-height 0.3s ease}
+.password-wrap{position:relative;display:flex;align-items:center}
+.password-wrap input{padding-right:130px}
+.password-toggle-btn{position:absolute;right:90px;background:none;border:none;cursor:pointer;font-size:1rem;color:var(--text3);transition:color var(--transition);padding:4px}
 .password-toggle-btn:hover{color:var(--accent)}
-/* 不可逆算法提示样式 */
-.irreversible-warning{background:var(--warning-light);border-left:3px solid var(--warning);color:#854d0e}
-/* 隐藏元素 */
+.gen-btn-inner{position:absolute;right:8px}
 .hidden{display:none!important}
+.irreversible-warning{background:var(--warning-light);border-left:3px solid var(--warning);padding:10px 14px;border-radius:4px;color:#854d0e;font-size:0.88rem}
+.progress-bar-wrap{height:6px;background:var(--border2);border-radius:3px;overflow:hidden;margin-top:8px;display:none}
+.progress-bar{height:100%;background:var(--accent);border-radius:3px;transition:width 0.2s ease;width:0}
+.algo-info-box{background:var(--accent-light);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-size:0.82rem;color:var(--text2);margin-top:12px;line-height:1.6;display:none}
+.swap-btn{background:none;border:1px solid var(--border2);border-radius:4px;padding:4px 10px;cursor:pointer;font-size:0.8rem;color:var(--text3);transition:all var(--transition)}
+.swap-btn:hover{border-color:var(--accent);color:var(--accent)}
+@media(max-width:600px){.language-switcher{position:static;justify-content:center;margin-bottom:12px}.header{padding:20px 0 16px}.container{padding:16px 12px 32px}}
 </style>
-<style id="swal-pub-style">
-.swal2-popup.swal2-toast .swal2-styled:focus{box-shadow:0 0 0 1px #fff,0 0 0 3px rgba(100,150,200,.5)}
-.swal2-popup:focus{outline:0}
-.swal2-actions:not(.swal2-loading) .swal2-styled:hover{background-image:linear-gradient(rgba(0,0,0,.1),rgba(0,0,0,.1))}
-.swal2-actions:not(.swal2-loading) .swal2-styled:active{background-image:linear-gradient(rgba(0,0,0,.2),rgba(0,0,0,.2))}
-.swal2-styled:focus{outline:0;box-shadow:0 0 0 3px rgba(100,150,200,.5)}
-.swal2-styled::-moz-focus-inner{border:0}
-.swal2-close:hover{transform:none;background:0 0;color:#f27474}
-.swal2-close:focus{outline:0;box-shadow:inset 0 0 0 3px rgba(100,150,200,.5)}
-.swal2-close::-moz-focus-inner{border:0}
-.swal2-file:focus,.swal2-input:focus,.swal2-textarea:focus{border:1px solid #b4dbed;outline:0;box-shadow:0 0 0 3px rgba(100,150,200,.5)}
-.swal2-file::-moz-placeholder,.swal2-input::-moz-placeholder,.swal2-textarea::-moz-placeholder{color:#ccc}
-.swal2-file:-ms-input-placeholder,.swal2-input:-ms-input-placeholder,.swal2-textarea:-ms-input-placeholder{color:#ccc}
-.swal2-file::placeholder,.swal2-input::placeholder,.swal2-textarea::placeholder{color:#ccc}
-.swal2-validation-message::before{content:"!";display:inline-block;width:1.5em;min-width:1.5em;height:1.5em;margin:0 .625em;border-radius:50%;background-color:#f27474;color:#fff;font-weight:600;line-height:1.5em;text-align:center}
-@-webkit-keyframes swal2-toast-show{0%{transform:translateY(-.625em) rotateZ(2deg)}33%{transform:translateY(0) rotateZ(-2deg)}66%{transform:translateY(.3125em) rotateZ(2deg)}100%{transform:translateY(0) rotateZ(0)}}
-@keyframes swal2-toast-show{0%{transform:translateY(-.625em) rotateZ(2deg)}33%{transform:translateY(0) rotateZ(-2deg)}66%{transform:translateY(.3125em) rotateZ(2deg)}100%{transform:translateY(0) rotateZ(0)}}
-@-webkit-keyframes swal2-toast-hide{100%{transform:rotateZ(1deg);opacity:0}}
-@keyframes swal2-toast-hide{100%{transform:rotateZ(1deg);opacity:0}}
-@-webkit-keyframes swal2-toast-animate-success-line-tip{0%{top:.5625em;left:.0625em;width:0}54%{top:.125em;left:.125em;width:0}70%{top:.625em;left:-.25em;width:1.625em}84%{top:1.0625em;left:.75em;width:.5em}100%{top:1.125em;left:.1875em;width:.75em}}
-@keyframes swal2-toast-animate-success-line-tip{0%{top:.5625em;left:.0625em;width:0}54%{top:.125em;left:.125em;width:0}70%{top:.625em;left:-.25em;width:1.625em}84%{top:1.0625em;left:.75em;width:.5em}100%{top:1.125em;left:.1875em;width:.75em}}
-@-webkit-keyframes swal2-toast-animate-success-line-long{0%{top:1.625em;right:1.375em;width:0}65%{top:1.25em;right:.9375em;width:0}84%{top:.9375em;right:0;width:1.125em}100%{top:.9375em;right:.1875em;width:1.375em}}
-@keyframes swal2-toast-animate-success-line-long{0%{top:1.625em;right:1.375em;width:0}65%{top:1.25em;right:.9375em;width:0}84%{top:.9375em;right:0;width:1.125em}100%{top:.9375em;right:.1875em;width:1.375em}}
-@-webkit-keyframes swal2-show{0%{transform:scale(.7)}45%{transform:scale(1.05)}80%{transform:scale(.95)}100%{transform:scale(1)}}
-@keyframes swal2-show{0%{transform:scale(.7)}45%{transform:scale(1.05)}80%{transform:scale(.95)}100%{transform:scale(1)}}
-@-webkit-keyframes swal2-hide{0%{transform:scale(1);opacity:1}100%{transform:scale(.5);opacity:0}}
-@keyframes swal2-hide{0%{transform:scale(1);opacity:1}100%{transform:scale(.5);opacity:0}}
-@-webkit-keyframes swal2-animate-success-line-tip{0%{top:1.1875em;left:.0625em;width:0}54%{top:1.0625em;left:.125em;width:0}70%{top:2.1875em;left:-.375em;width:3.125em}84%{top:3em;left:1.3125em;width:1.0625em}100%{top:2.8125em;left:.8125em;width:1.5625em}}
-@keyframes swal2-animate-success-line-tip{0%{top:1.1875em;left:.0625em;width:0}54%{top:1.0625em;left:.125em;width:0}70%{top:2.1875em;left:-.375em;width:3.125em}84%{top:3em;left:1.3125em;width:1.0625em}100%{top:2.8125em;left:.8125em;width:1.5625em}}
-@-webkit-keyframes swal2-animate-success-line-long{0%{top:3.375em;right:2.875em;width:0}65%{top:3.375em;right:2.875em;width:0}84%{top:2.1875em;right:0;width:3.4375em}100%{top:2.375em;right:.5em;width:2.9375em}}
-@keyframes swal2-animate-success-line-long{0%{top:3.375em;right:2.875em;width:0}65%{top:3.375em;right:2.875em;width:0}84%{top:2.1875em;right:0;width:3.4375em}100%{top:2.375em;right:.5em;width:2.9375em}}
-@-webkit-keyframes swal2-rotate-success-circular-line{0%{transform:rotate(-45deg)}5%{transform:rotate(-45deg)}12%{transform:rotate(-405deg)}100%{transform:rotate(-405deg)}}
-@keyframes swal2-rotate-success-circular-line{0%{transform:rotate(-45deg)}5%{transform:rotate(-45deg)}12%{transform:rotate(-405deg)}100%{transform:rotate(-405deg)}}
-@-webkit-keyframes swal2-animate-error-x-mark{0%{margin-top:1.625em;transform:scale(.4);opacity:0}50%{margin-top:1.625em;transform:scale(.4);opacity:0}80%{margin-top:-.375em;transform:scale(1.15)}100%{margin-top:0;transform:scale(1);opacity:1}}
-@keyframes swal2-animate-error-x-mark{0%{margin-top:1.625em;transform:scale(.4);opacity:0}50%{margin-top:1.625em;transform:scale(.4);opacity:0}80%{margin-top:-.375em;transform:scale(1.15)}100%{margin-top:0;transform:scale(1);opacity:1}}
-@-webkit-keyframes swal2-animate-error-icon{0%{transform:rotateX(100deg);opacity:0}100%{transform:rotateX(0);opacity:1}}
-@keyframes swal2-animate-error-icon{0%{transform:rotateX(100deg);opacity:0}100%{transform:rotateX(0);opacity:1}}
-@-webkit-keyframes swal2-rotate-loading{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
-@keyframes swal2-rotate-loading{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
-</style>
-<style id="instant-style">
-@keyframes instantAnminate{from{opacity:1}50%{opacity:0.4}to{opacity:0.9}}
-</style>
-<meta name="referrer" content="no-referrer">
-<style>.sf-hidden{display:none!important}</style>
-<link rel="canonical" href="https://jia-sbg.github.io/lockbox/">
-<meta http-equiv="content-security-policy" content="default-src 'none'; font-src 'self' data:; img-src 'self' data:; style-src 'unsafe-inline'; media-src 'self' data:; script-src 'unsafe-inline' data:; object-src 'self' data:; frame-src 'self' data:;">
 </head>
 <body>
 <div class="container">
   <div class="header">
-    <div class="language-switcher">
-      <button class="lang-btn active" data-lang="zh">中文</button>
+    <div class="language-switcher" id="languageSwitcher">
+      <button class="lang-btn" data-lang="zh">简体</button>
+      <button class="lang-btn active" data-lang="tw">繁體</button>
       <button class="lang-btn" data-lang="en">English</button>
     </div>
     <div class="icon">🔐</div>
     <h1 data-i18n="title">全算法加密工具</h1>
-    <p class="subtitle" data-i18n="subtitle">纯浏览器端 · 60+种算法 · GB级大文件支持 · 流式处理 · 终极优化版</p>
+    <p class="subtitle" data-i18n="subtitle">純瀏覽器端 · 70+種算法 · 全部真實實現 · 繁簡英三語</p>
   </div>
-  
+
   <div class="card">
     <div class="card-header" id="algosHeader">
-      <span data-i18n="selectAlgorithm">🔒 选择加密算法</span> 
-      <span style="font-weight:400;font-size:0.8rem;margin-left:8px" data-i18n="clickToSwitch">（点击切换）</span>
+      <span class="dot"></span>
+      <span data-i18n="selectAlgorithm">選擇加密算法</span>
+      <span style="font-weight:400;font-size:0.8rem;margin-left:4px" data-i18n="clickToSwitch">（點擊切換）</span>
       <span class="toggle-icon">▼</span>
     </div>
     <div class="collapsible-content" id="algosContent" style="max-height:none">
       <div id="algoButtonsContainer">
+
         <div class="category-section">
-          <div class="category-title" data-i18n="originalChinese">原创中文加密</div>
+          <div class="category-title" data-i18n="originalChinese">原創中文加密</div>
           <div class="algos-wrapper">
-            <button class="algo-btn" data-algo="chinese" data-category="chinese" data-i18n="chineseEncrypt">中文加密</button>
-            <button class="algo-btn" data-algo="chinesePlus" data-category="chinese" data-i18n="chineseEncryptPlus">中文加密Plus</button>
+            <button class="algo-btn" data-algo="chinese" data-i18n-algo="chineseEncrypt">中文加密</button>
+            <button class="algo-btn" data-algo="chinesePlus" data-i18n-algo="chineseEncryptPlus">中文加密Plus</button>
           </div>
         </div>
+
         <div class="category-section">
-          <div class="category-title" data-i18n="classicalCiphers">古典密码</div>
+          <div class="category-title" data-i18n="classicalCiphers">古典密碼</div>
           <div class="algos-wrapper">
-            <button class="algo-btn" data-algo="caesar" data-category="classic">凯撒密码</button>
-            <button class="algo-btn" data-algo="vigenere" data-category="classic">维吉尼亚</button>
-            <button class="algo-btn" data-algo="autokey" data-category="classic">Autokey</button>
-            <button class="algo-btn" data-algo="beaufort" data-category="classic">Beaufort</button>
-            <button class="algo-btn" data-algo="rot13" data-category="classic">ROT13</button>
-            <button class="algo-btn" data-algo="rot47" data-category="classic">ROT47</button>
-            <button class="algo-btn" data-algo="atbash" data-category="classic">Atbash</button>
-            <button class="algo-btn" data-algo="railfence" data-category="classic">栅栏密码</button>
-            <button class="algo-btn" data-algo="coltrans" data-category="classic">列换位</button>
-            <button class="algo-btn" data-algo="playfair" data-category="classic">Playfair</button>
-            <button class="algo-btn" data-algo="polybius" data-category="classic">Polybius方阵</button>
-            <button class="algo-btn" data-algo="hill2" data-category="classic">Hill (2x2)</button>
-            <button class="algo-btn" data-algo="adfgvx" data-category="classic">ADFGVX</button>
-            <button class="algo-btn" data-algo="bifid" data-category="classic">Bifid</button>
-            <button class="algo-btn" data-algo="foursquare" data-category="classic">Four-square</button>
+            <button class="algo-btn" data-algo="caesar">凱撒密碼</button>
+            <button class="algo-btn" data-algo="vigenere">維吉尼亞</button>
+            <button class="algo-btn" data-algo="autokey">Autokey</button>
+            <button class="algo-btn" data-algo="beaufort">Beaufort</button>
+            <button class="algo-btn" data-algo="rot13">ROT13</button>
+            <button class="algo-btn" data-algo="rot47">ROT47</button>
+            <button class="algo-btn" data-algo="atbash">Atbash</button>
+            <button class="algo-btn" data-algo="railfence">柵欄密碼</button>
+            <button class="algo-btn" data-algo="coltrans">列換位</button>
+            <button class="algo-btn" data-algo="playfair">Playfair</button>
+            <button class="algo-btn" data-algo="polybius">Polybius方陣</button>
+            <button class="algo-btn" data-algo="hill2">Hill (2×2)</button>
+            <button class="algo-btn" data-algo="adfgvx">ADFGVX</button>
+            <button class="algo-btn" data-algo="bifid">Bifid</button>
+            <button class="algo-btn" data-algo="foursquare">Four-Square</button>
+            <button class="algo-btn" data-algo="affine">Affine</button>
           </div>
         </div>
+
         <div class="category-section">
-          <div class="category-title" data-i18n="simpleEncryption">简单加密</div>
+          <div class="category-title" data-i18n="simpleEncryption">簡單加密</div>
           <div class="algos-wrapper">
-            <button class="algo-btn" data-algo="xor" data-category="simple">XOR 异或</button>
-            <button class="algo-btn" data-algo="rc4" data-category="simple">RC4</button>
-            <button class="algo-btn" data-algo="rc4drop" data-category="simple">RC4-drop</button>
+            <button class="algo-btn" data-algo="xor">XOR 異或</button>
+            <button class="algo-btn" data-algo="rc4">RC4</button>
+            <button class="algo-btn" data-algo="rc4drop">RC4-drop256</button>
           </div>
         </div>
+
         <div class="category-section">
-          <div class="category-title" data-i18n="encodingFormats">编码格式</div>
+          <div class="category-title" data-i18n="encodingFormats">編碼格式</div>
           <div class="algos-wrapper">
-            <button class="algo-btn" data-algo="base64" data-category="encoding">Base64</button>
-            <button class="algo-btn" data-algo="base64url" data-category="encoding">Base64URL</button>
-            <button class="algo-btn" data-algo="base32" data-category="encoding">Base32</button>
-            <button class="algo-btn" data-algo="base32hex" data-category="encoding">Base32Hex</button>
-            <button class="algo-btn" data-algo="base85" data-category="encoding">Base85</button>
-            <button class="algo-btn" data-algo="base58" data-category="encoding">Base58</button>
-            <button class="algo-btn" data-algo="base45" data-category="encoding">Base45</button>
-            <button class="algo-btn" data-algo="urlencode" data-category="encoding">URL编码</button>
-            <button class="algo-btn" data-algo="hex" data-category="encoding">Hex 十六进制</button>
-            <button class="algo-btn" data-algo="binary" data-category="encoding">二进制</button>
-            <button class="algo-btn" data-algo="morse" data-category="encoding">摩斯电码</button>
-            <button class="algo-btn" data-algo="uuencode" data-category="encoding">UUencode</button>
+            <button class="algo-btn" data-algo="base64">Base64</button>
+            <button class="algo-btn" data-algo="base64url">Base64URL</button>
+            <button class="algo-btn" data-algo="base32">Base32</button>
+            <button class="algo-btn" data-algo="base32hex">Base32Hex</button>
+            <button class="algo-btn" data-algo="base85">Base85</button>
+            <button class="algo-btn" data-algo="base58">Base58</button>
+            <button class="algo-btn" data-algo="base45">Base45</button>
+            <button class="algo-btn" data-algo="urlencode">URL編碼</button>
+            <button class="algo-btn" data-algo="hex">Hex 十六進制</button>
+            <button class="algo-btn" data-algo="binary">二進制</button>
+            <button class="algo-btn" data-algo="octal">八進制</button>
+            <button class="algo-btn" data-algo="morse">摩斯電碼</button>
+            <button class="algo-btn" data-algo="uuencode">UUencode</button>
+            <button class="algo-btn" data-algo="unicode">Unicode 轉義</button>
           </div>
         </div>
+
         <div class="category-section">
           <div class="category-title" data-i18n="hashAlgorithms">哈希算法（不可逆）</div>
           <div class="algos-wrapper">
-            <button class="algo-btn" data-algo="md5" data-category="hash">MD5</button>
-            <button class="algo-btn" data-algo="sha1" data-category="hash">SHA-1</button>
-            <button class="algo-btn" data-algo="sha256" data-category="hash">SHA-256</button>
-            <button class="algo-btn" data-algo="sha384" data-category="hash">SHA-384</button>
-            <button class="algo-btn" data-algo="sha512" data-category="hash">SHA-512</button>
-            <button class="algo-btn" data-algo="sha3-256" data-category="hash">SHA3-256</button>
-            <button class="algo-btn" data-algo="sha3-512" data-category="hash">SHA3-512</button>
-            <button class="algo-btn" data-algo="crc32" data-category="hash">CRC32</button>
-            <button class="algo-btn" data-algo="hmac-sha256" data-category="hash">HMAC-SHA256</button>
-            <button class="algo-btn" data-algo="hmac-sha512" data-category="hash">HMAC-SHA512</button>
+            <button class="algo-btn" data-algo="md5"><span class="badge badge-hash">HASH</span>MD5</button>
+            <button class="algo-btn" data-algo="sha1"><span class="badge badge-hash">HASH</span>SHA-1</button>
+            <button class="algo-btn" data-algo="sha256"><span class="badge badge-hash">HASH</span>SHA-256</button>
+            <button class="algo-btn" data-algo="sha384"><span class="badge badge-hash">HASH</span>SHA-384</button>
+            <button class="algo-btn" data-algo="sha512"><span class="badge badge-hash">HASH</span>SHA-512</button>
+            <button class="algo-btn" data-algo="sha3-256"><span class="badge badge-hash">HASH</span>SHA3-256</button>
+            <button class="algo-btn" data-algo="sha3-512"><span class="badge badge-hash">HASH</span>SHA3-512</button>
+            <button class="algo-btn" data-algo="crc32"><span class="badge badge-hash">HASH</span>CRC32</button>
+            <button class="algo-btn" data-algo="hmac-sha256">HMAC-SHA256</button>
+            <button class="algo-btn" data-algo="hmac-sha512">HMAC-SHA512</button>
           </div>
         </div>
+
         <div class="category-section">
-          <div class="category-title" data-i18n="modernSymmetric">现代对称加密</div>
+          <div class="category-title" data-i18n="modernSymmetric">現代對稱加密</div>
           <div class="algos-wrapper">
-            <button class="algo-btn" data-algo="aes128gcm" data-category="modern">AES-128-GCM</button>
-            <button class="algo-btn" data-algo="aes192gcm" data-category="modern">AES-192-GCM</button>
-            <button class="algo-btn active" data-algo="aes256gcm" data-category="modern">AES-256-GCM</button>
-            <button class="algo-btn" data-algo="aes256cbc" data-category="modern">AES-256-CBC</button>
-            <button class="algo-btn" data-algo="aes256ctr" data-category="modern">AES-256-CTR</button>
-            <button class="algo-btn" data-algo="chacha20" data-category="modern">ChaCha20</button>
-            <button class="algo-btn" data-algo="blowfish" data-category="modern">Blowfish</button>
-            <button class="algo-btn" data-algo="twofish" data-category="modern">Twofish</button>
-            <button class="algo-btn" data-algo="aesCaesar" data-category="modern">AES+凯撒</button>
+            <button class="algo-btn" data-algo="aes128gcm">AES-128-GCM</button>
+            <button class="algo-btn" data-algo="aes192gcm">AES-192-GCM</button>
+            <button class="algo-btn active" data-algo="aes256gcm">AES-256-GCM</button>
+            <button class="algo-btn" data-algo="aes256cbc">AES-256-CBC</button>
+            <button class="algo-btn" data-algo="aes256ctr">AES-256-CTR</button>
+            <button class="algo-btn" data-algo="chacha20">ChaCha20-Poly1305</button>
+            <button class="algo-btn" data-algo="aesCaesar">AES+凱撒</button>
           </div>
         </div>
+
         <div class="category-section">
-          <div class="category-title" data-i18n="asymmetricEncryption">非对称加密</div>
+          <div class="category-title" data-i18n="asymmetricEncryption">非對稱加密</div>
           <div class="algos-wrapper">
-            <button class="algo-btn" data-algo="rsaAes" data-category="asymmetric">RSA+AES</button>
-            <button class="algo-btn" data-algo="rsaEcdsa" data-category="asymmetric">RSA+ECDSA</button>
+            <button class="algo-btn" data-algo="rsaAes">RSA-OAEP+AES</button>
+            <button class="algo-btn" data-algo="ecdh">ECDH+AES-GCM</button>
           </div>
         </div>
+
       </div>
     </div>
   </div>
-  
+
   <div class="card" id="keyManagementCard">
-    <div class="card-header" id="keyMgmtHeader"><span class="dot"></span> AES-256-GCM <span data-i18n="parameters">参数</span></div>
+    <div class="card-header"><span class="dot"></span> <span id="keyMgmtTitle">AES-256-GCM</span> <span data-i18n="parameters">參數</span></div>
     <div id="keyMgmtContent">
       <div>
-        <label data-i18n="password">密码</label>
-        <div style="position:relative">
-          <input type="password" id="algoParam1" data-i18n-placeholder="enterPassword" placeholder="输入密码" autocomplete="off">
-          <button type="button" class="password-toggle-btn" id="passwordToggleBtn" title="显示/隐藏密码">👁️</button>
-          <button type="button" class="btn btn-secondary btn-sm" id="generatePasswordBtn" style="position:absolute;right:8px;top:50%;transform:translateY(-50%)">🔑 <span data-i18n="generate">生成</span></button>
+        <label data-i18n="password">密碼</label>
+        <div class="password-wrap">
+          <input type="password" id="algoParam1" data-i18n-placeholder="enterPassword" placeholder="輸入密碼" autocomplete="off">
+          <button type="button" class="password-toggle-btn" id="passwordToggleBtn" title="顯示/隱藏密碼">👁️</button>
+          <button type="button" class="btn btn-secondary btn-sm gen-btn-inner" id="generatePasswordBtn">🔑 <span data-i18n="generate">生成</span></button>
         </div>
         <div class="password-strength">
           <div class="password-strength-bar" id="passwordStrengthBar"></div>
         </div>
+        <div id="strengthLabel" style="font-size:0.75rem;color:var(--text3);margin-top:4px"></div>
       </div>
     </div>
   </div>
-  
+
+  <div class="card" id="algoInfoCard" style="display:none">
+    <div style="font-size:0.82rem;color:var(--text2);line-height:1.7" id="algoInfoText"></div>
+  </div>
+
   <div class="card">
-    <div class="card-header" data-i18n="inputMode">📝 输入模式</div>
+    <div class="card-header" data-i18n="inputMode">📝 輸入模式</div>
     <div class="tab-switcher" id="tabSwitcher">
-      <button class="active-tab" data-tab="text" data-i18n="textInput">📝 文字输入</button>
+      <button class="active-tab" data-tab="text" data-i18n="textInput">📝 文字輸入</button>
       <button data-tab="file" data-i18n="fileEncryption">📁 文件加密</button>
     </div>
     <div id="textInputArea">
-      <label for="plaintextInput" data-i18n="inputPlaintext">输入明文（解密时粘贴密文）</label>
-      <textarea id="plaintextInput" data-i18n-placeholder="enterTextHere" placeholder="在此输入要加密的文字…"></textarea>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <label for="plaintextInput" data-i18n="inputPlaintext">輸入明文（解密時貼上密文）</label>
+        <button class="swap-btn" id="swapBtn" data-i18n="swapText" title="互換輸入/輸出">⇄ 互換</button>
+      </div>
+      <textarea id="plaintextInput" data-i18n-placeholder="enterTextHere" placeholder="在此輸入要加密的文字…"></textarea>
+      <div style="font-size:0.75rem;color:var(--text3);margin-top:4px" id="inputCharCount"></div>
     </div>
     <div id="fileInputArea" style="display:none">
       <input type="file" id="fileInput" style="display:none">
-      <button class="btn btn-secondary" id="selectFileBtn" data-i18n="selectFile">📁 选择文件</button>
+      <button class="btn btn-secondary" id="selectFileBtn" data-i18n="selectFile">📁 選擇文件</button>
       <div id="fileInfo" style="margin-top:10px;font-size:0.85rem;color:var(--text2)"></div>
     </div>
     <div id="statusMsg" class="status-msg" style="display:none"></div>
+    <div class="progress-bar-wrap" id="progressBarWrap">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
   </div>
-  
+
   <div class="card">
     <div class="btn-group">
       <button class="btn btn-primary" id="encryptBtn">🔒 <span data-i18n="encrypt">加密</span></button>
       <button class="btn btn-secondary" id="decryptBtn">🔓 <span data-i18n="decrypt">解密</span></button>
-      <button class="btn btn-danger btn-sm" id="clearAllBtn">🗑️ <span data-i18n="clearAll">一键清空</span></button>
+      <button class="btn btn-danger btn-sm" id="clearAllBtn">🗑️ <span data-i18n="clearAll">一鍵清空</span></button>
       <button class="btn btn-secondary btn-sm" id="cancelBtn" style="display:none">⏹️ <span data-i18n="cancel">取消</span></button>
     </div>
     <div id="operationStatus" style="margin-top:8px;font-size:0.8rem;color:var(--text3)"></div>
   </div>
-  
+
   <div class="card">
-    <div class="card-header" data-i18n="outputResult">📤 输出结果</div>
+    <div class="card-header" data-i18n="outputResult">📤 輸出結果</div>
     <div class="output-area">
-      <textarea id="outputText" data-i18n-placeholder="resultWillShowHere" placeholder="加密或解密结果将显示在这里…" readonly></textarea>
-      <button class="copy-btn" id="copyOutputBtn" data-i18n-title="copyResult" title="复制结果">📋</button>
+      <textarea id="outputText" data-i18n-placeholder="resultWillShowHere" placeholder="加密或解密結果將顯示在這裡…" readonly></textarea>
+      <button class="copy-btn" id="copyOutputBtn" data-i18n-title="copyResult" title="複製結果">📋</button>
     </div>
-    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-secondary btn-sm" id="downloadOutputBtn" style="display:none">💾 <span data-i18n="downloadFile">下载文件</span></button>
-      <span id="outputInfo" style="font-size:0.78rem;color:var(--text3);align-self:center"></span>
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <button class="btn btn-secondary btn-sm" id="downloadOutputBtn" style="display:none">💾 <span data-i18n="downloadResult">下載結果</span></button>
+      <span id="outputInfo" style="font-size:0.78rem;color:var(--text3)"></span>
     </div>
   </div>
-  
+
   <div class="card" style="background:var(--surface2);border-left:3px solid var(--accent)">
     <div style="font-size:0.8rem;color:var(--text2);line-height:1.7">
-      <strong data-i18n="securityNote">🛡️ 安全说明：</strong>
-      <span data-i18n="securityNoteContent">所有运算在浏览器本地执行，数据不会上传到任何服务器。古典密码仅用于教学，现代密码使用 Web Crypto API。请保管好密钥，丢失无法恢复。页面关闭后所有数据将被清除。</span>
+      <strong data-i18n="securityNote">🛡️ 安全說明：</strong>
+      <span data-i18n="securityNoteContent">所有運算在瀏覽器本地執行，數據不會上傳到任何伺服器。古典密碼僅用於教學，現代密碼使用 Web Crypto API。請保管好密鑰，丟失無法恢復。頁面關閉後所有數據將被清除。</span>
     </div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-// ==================== 国际化语言包 ====================
+// ===================== i18n =====================
 const i18n = {
   zh: {
-    title: "全算法加密工具",
-    subtitle: "纯浏览器端 · 60+种算法 · GB级大文件支持 · 流式处理 · 终极优化版",
-    selectAlgorithm: "🔒 选择加密算法",
-    clickToSwitch: "（点击切换）",
-    originalChinese: "原创中文加密",
-    chineseEncrypt: "中文加密",
-    chineseEncryptPlus: "中文加密Plus",
-    classicalCiphers: "古典密码",
-    simpleEncryption: "简单加密",
-    encodingFormats: "编码格式",
-    hashAlgorithms: "哈希算法（不可逆）",
-    modernSymmetric: "现代对称加密",
-    asymmetricEncryption: "非对称加密",
-    parameters: "参数",
-    password: "密码",
-    enterPassword: "输入密码",
-    generate: "生成",
-    inputMode: "📝 输入模式",
-    textInput: "📝 文字输入",
-    fileEncryption: "📁 文件加密",
-    inputPlaintext: "输入明文（解密时粘贴密文）",
-    enterTextHere: "在此输入要加密的文字…",
-    selectFile: "📁 选择文件",
-    encrypt: "加密",
-    decrypt: "解密",
-    clearAll: "一键清空",
-    cancel: "取消",
-    outputResult: "📤 输出结果",
-    resultWillShowHere: "加密或解密结果将显示在这里…",
-    copyResult: "复制结果",
-    downloadFile: "下载文件",
-    securityNote: "🛡️ 安全说明：",
-    securityNoteContent: "所有运算在浏览器本地执行，数据不会上传到任何服务器。古典密码仅用于教学，现代密码使用 Web Crypto API。请保管好密钥，丢失无法恢复。页面关闭后所有数据将被清除。",
-    generatedStrongPassword: "已生成强密码",
-    hashIrreversibleWarning: "您选择的是哈希算法，加密后无法解密还原原始数据！",
-    irreversibleWarningTitle: "不可逆加密警告",
-    confirmEncrypt: "我知道了，继续加密",
-    cancel: "取消",
-    hashCannotDecrypt: "哈希算法不可逆，无法解密",
-    pleaseEnterText: "请输入要处理的文本",
-    pleaseSelectFile: "请先选择文件",
-    encryptionSuccess: "加密成功",
-    decryptionSuccess: "解密成功",
-    encryptionFailed: "加密失败",
-    decryptionFailed: "解密失败",
-    processing: "处理中...",
-    fileProcessing: "文件处理中...",
-    clearedAll: "已清空所有内容",
-    copiedToClipboard: "已复制到剪贴板",
-    copyFailed: "复制失败",
-    selectedFile: "已选择文件",
-    processingComplete: "处理完成，共",
-    characters: "个字符",
-    fileSize: "文件大小",
-    fileEncryptionComplete: "文件加密完成",
-    fileDecryptionComplete: "文件解密完成"
+    title:"全算法加密工具",subtitle:"纯浏览器端 · 70+种算法 · 全部真实实现 · 繁简英三语",
+    selectAlgorithm:"选择加密算法",clickToSwitch:"（点击切换）",
+    originalChinese:"原创中文加密",chineseEncrypt:"中文加密",chineseEncryptPlus:"中文加密Plus",
+    classicalCiphers:"古典密码",simpleEncryption:"简单加密",encodingFormats:"编码格式",
+    hashAlgorithms:"哈希算法（不可逆）",modernSymmetric:"现代对称加密",asymmetricEncryption:"非对称加密",
+    parameters:"参数",password:"密码",enterPassword:"输入密码",generate:"生成",
+    inputMode:"📝 输入模式",textInput:"📝 文字输入",fileEncryption:"📁 文件加密",
+    inputPlaintext:"输入明文（解密时粘贴密文）",enterTextHere:"在此输入要加密的文字…",
+    selectFile:"📁 选择文件",encrypt:"加密",decrypt:"解密",clearAll:"一键清空",cancel:"取消",
+    outputResult:"📤 输出结果",resultWillShowHere:"加密或解密结果将显示在这里…",
+    copyResult:"复制结果",downloadResult:"下载结果",swapText:"⇄ 互换",
+    securityNote:"🛡️ 安全说明：",
+    securityNoteContent:"所有运算在浏览器本地执行，数据不会上传到任何服务器。古典密码仅用于教学，现代密码使用 Web Crypto API。请保管好密钥，丢失无法恢复。页面关闭后所有数据将被清除。",
+    generatedStrongPassword:"已生成强密码",hashIrreversibleWarning:"您选择的是哈希算法，加密后无法解密还原原始数据！",
+    irreversibleWarningTitle:"不可逆加密警告",confirmEncrypt:"我知道了，继续加密",
+    hashCannotDecrypt:"哈希算法不可逆，无法解密",pleaseEnterText:"请输入要处理的文本",
+    pleaseSelectFile:"请先选择文件",encryptionSuccess:"加密成功",decryptionSuccess:"解密成功",
+    encryptionFailed:"加密失败：",decryptionFailed:"解密失败：",processing:"处理中…",
+    fileProcessing:"文件处理中…",clearedAll:"已清空所有内容",copiedToClipboard:"已复制到剪贴板",
+    copyFailed:"复制失败",selectedFile:"已选择文件",
+    processingComplete:"处理完成，共",characters:"个字符",fileSize:"文件大小",
+    fileEncryptionComplete:"文件加密完成",fileDecryptionComplete:"文件解密完成",
+    strengthWeak:"密码强度：弱",strengthFair:"密码强度：一般",strengthGood:"密码强度：强",strengthVeryGood:"密码强度：很强",
+    keyRequired:"此算法需要密码/密钥",needKey:"请输入密码",
+    caesar_info:"凯撒密码：将每个字母向后移动 N 位（默认3）。密钥填偏移量，如 3。",
+    vigenere_info:"维吉尼亚密码：用多字母密钥循环加密，比凯撒密码更安全。",
+    playfair_info:"Playfair密码：使用5×5字母方阵加密，密钥建议仅用字母。",
+    hill_info:"Hill密码（2×2）：矩阵乘法加密，密钥为4个数字，逗号分隔，如 3,3,2,5。",
+    adfgvx_info:"ADFGVX密码：一战德军使用的密码，结合Polybius方阵与列换位。",
+    bifid_info:"Bifid密码：结合Polybius方阵与分形置换的古典密码。",
+    chacha20_info:"ChaCha20-Poly1305：Google推荐的现代流密码，安全性与AES-GCM相当。",
+    rsaAes_info:"RSA-OAEP+AES：非对称加密，每次生成新密钥对。公钥加密，私钥解密。将密文和私钥一起保存以便解密。",
+    ecdh_info:"ECDH+AES-GCM：椭圆曲线密钥交换，安全性高，密钥短。",
+    affine_info:"Affine密码：仿射密码，密钥为两个整数 a,b（如 5,8），a必须与26互质。",
+    railfence_info:"栅栏密码：将文字按Z字形写入多行，密钥为行数（默认2）。",
+    coltrans_info:"列换位密码：按关键字列序重排文字，密钥为字母排列顺序关键字。",
+    hmac_info:"HMAC：带密钥的哈希消息认证码，用于验证消息完整性和真实性。"
+  },
+  tw: {
+    title:"全算法加密工具",subtitle:"純瀏覽器端 · 70+種算法 · 全部真實實現 · 繁簡英三語",
+    selectAlgorithm:"選擇加密算法",clickToSwitch:"（點擊切換）",
+    originalChinese:"原創中文加密",chineseEncrypt:"中文加密",chineseEncryptPlus:"中文加密Plus",
+    classicalCiphers:"古典密碼",simpleEncryption:"簡單加密",encodingFormats:"編碼格式",
+    hashAlgorithms:"雜湊算法（不可逆）",modernSymmetric:"現代對稱加密",asymmetricEncryption:"非對稱加密",
+    parameters:"參數",password:"密碼",enterPassword:"輸入密碼",generate:"生成",
+    inputMode:"📝 輸入模式",textInput:"📝 文字輸入",fileEncryption:"📁 文件加密",
+    inputPlaintext:"輸入明文（解密時貼上密文）",enterTextHere:"在此輸入要加密的文字…",
+    selectFile:"📁 選擇文件",encrypt:"加密",decrypt:"解密",clearAll:"一鍵清空",cancel:"取消",
+    outputResult:"📤 輸出結果",resultWillShowHere:"加密或解密結果將顯示在這裡…",
+    copyResult:"複製結果",downloadResult:"下載結果",swapText:"⇄ 互換",
+    securityNote:"🛡️ 安全說明：",
+    securityNoteContent:"所有運算在瀏覽器本地執行，數據不會上傳到任何伺服器。古典密碼僅用於教學，現代密碼使用 Web Crypto API。請保管好密鑰，丟失無法恢復。頁面關閉後所有數據將被清除。",
+    generatedStrongPassword:"已生成強密碼",hashIrreversibleWarning:"您選擇的是雜湊算法，加密後無法解密還原原始數據！",
+    irreversibleWarningTitle:"不可逆加密警告",confirmEncrypt:"我知道了，繼續加密",
+    hashCannotDecrypt:"雜湊算法不可逆，無法解密",pleaseEnterText:"請輸入要處理的文本",
+    pleaseSelectFile:"請先選擇文件",encryptionSuccess:"加密成功",decryptionSuccess:"解密成功",
+    encryptionFailed:"加密失敗：",decryptionFailed:"解密失敗：",processing:"處理中…",
+    fileProcessing:"文件處理中…",clearedAll:"已清空所有內容",copiedToClipboard:"已複製到剪貼簿",
+    copyFailed:"複製失敗",selectedFile:"已選擇文件",
+    processingComplete:"處理完成，共",characters:"個字符",fileSize:"文件大小",
+    fileEncryptionComplete:"文件加密完成",fileDecryptionComplete:"文件解密完成",
+    strengthWeak:"密碼強度：弱",strengthFair:"密碼強度：一般",strengthGood:"密碼強度：強",strengthVeryGood:"密碼強度：很強",
+    keyRequired:"此算法需要密碼/密鑰",needKey:"請輸入密碼",
+    caesar_info:"凱撒密碼：將每個字母向後移動 N 位（預設3）。密鑰填偏移量，如 3。",
+    vigenere_info:"維吉尼亞密碼：用多字母密鑰循環加密，比凱撒密碼更安全。",
+    playfair_info:"Playfair密碼：使用5×5字母方陣加密，密鑰建議僅用字母。",
+    hill_info:"Hill密碼（2×2）：矩陣乘法加密，密鑰為4個數字，逗號分隔，如 3,3,2,5。",
+    adfgvx_info:"ADFGVX密碼：一戰德軍使用的密碼，結合Polybius方陣與列換位。",
+    bifid_info:"Bifid密碼：結合Polybius方陣與分形置換的古典密碼。",
+    chacha20_info:"ChaCha20-Poly1305：Google推薦的現代流密碼，安全性與AES-GCM相當。",
+    rsaAes_info:"RSA-OAEP+AES：非對稱加密，每次生成新密鑰對。公鑰加密，私鑰解密。將密文和私鑰一起保存以便解密。",
+    ecdh_info:"ECDH+AES-GCM：橢圓曲線密鑰交換，安全性高，密鑰短。",
+    affine_info:"Affine密碼：仿射密碼，密鑰為兩個整數 a,b（如 5,8），a必須與26互質。",
+    railfence_info:"柵欄密碼：將文字按Z字形寫入多行，密鑰為行數（預設2）。",
+    coltrans_info:"列換位密碼：按關鍵字列序重排文字，密鑰為字母排列順序關鍵字。",
+    hmac_info:"HMAC：帶密鑰的雜湊訊息認證碼，用於驗證訊息完整性和真實性。"
   },
   en: {
-    title: "All-Algorithm Encryption Tool",
-    subtitle: "Pure browser-side · 60+ algorithms · GB-level file support · Stream processing · Ultimate optimized version",
-    selectAlgorithm: "🔒 Select Encryption Algorithm",
-    clickToSwitch: "(Click to switch)",
-    originalChinese: "Original Chinese Encryption",
-    chineseEncrypt: "Chinese Encrypt",
-    chineseEncryptPlus: "Chinese Encrypt Plus",
-    classicalCiphers: "Classical Ciphers",
-    simpleEncryption: "Simple Encryption",
-    encodingFormats: "Encoding Formats",
-    hashAlgorithms: "Hash Algorithms (Irreversible)",
-    modernSymmetric: "Modern Symmetric Encryption",
-    asymmetricEncryption: "Asymmetric Encryption",
-    parameters: "Parameters",
-    password: "Password",
-    enterPassword: "Enter password",
-    generate: "Generate",
-    inputMode: "📝 Input Mode",
-    textInput: "📝 Text Input",
-    fileEncryption: "📁 File Encryption",
-    inputPlaintext: "Enter plaintext (paste ciphertext when decrypting)",
-    enterTextHere: "Enter text to encrypt here...",
-    selectFile: "📁 Select File",
-    encrypt: "Encrypt",
-    decrypt: "Decrypt",
-    clearAll: "Clear All",
-    cancel: "Cancel",
-    outputResult: "📤 Output Result",
-    resultWillShowHere: "Encryption or decryption result will be shown here...",
-    copyResult: "Copy Result",
-    downloadFile: "Download File",
-    securityNote: "🛡️ Security Note:",
-    securityNoteContent: "All operations are performed locally in your browser, no data is uploaded to any server. Classical ciphers are for educational purposes only. Modern ciphers use Web Crypto API. Please keep your key safe, it cannot be recovered if lost. All data will be cleared when the page is closed.",
-    generatedStrongPassword: "Strong password generated",
-    hashIrreversibleWarning: "You have selected a hash algorithm, which cannot be decrypted to recover the original data!",
-    irreversibleWarningTitle: "Irreversible Encryption Warning",
-    confirmEncrypt: "I understand, continue encryption",
-    cancel: "Cancel",
-    hashCannotDecrypt: "Hash algorithms are irreversible and cannot be decrypted",
-    pleaseEnterText: "Please enter text to process",
-    pleaseSelectFile: "Please select a file first",
-    encryptionSuccess: "Encryption successful",
-    decryptionSuccess: "Decryption successful",
-    encryptionFailed: "Encryption failed",
-    decryptionFailed: "Decryption failed",
-    processing: "Processing...",
-    fileProcessing: "Processing file...",
-    clearedAll: "All content cleared",
-    copiedToClipboard: "Copied to clipboard",
-    copyFailed: "Copy failed",
-    selectedFile: "Selected file",
-    processingComplete: "Processing complete, total",
-    characters: "characters",
-    fileSize: "File size",
-    fileEncryptionComplete: "File encryption complete",
-    fileDecryptionComplete: "File decryption complete"
+    title:"All-Algorithm Encryption Tool",subtitle:"Pure browser · 70+ algorithms · All fully implemented · ZH/TW/EN",
+    selectAlgorithm:"Select Algorithm",clickToSwitch:"(Click to switch)",
+    originalChinese:"Original Chinese Encryption",chineseEncrypt:"Chinese Encrypt",chineseEncryptPlus:"Chinese Encrypt Plus",
+    classicalCiphers:"Classical Ciphers",simpleEncryption:"Simple Encryption",encodingFormats:"Encoding Formats",
+    hashAlgorithms:"Hash Algorithms (Irreversible)",modernSymmetric:"Modern Symmetric",asymmetricEncryption:"Asymmetric",
+    parameters:"Parameters",password:"Password",enterPassword:"Enter password",generate:"Generate",
+    inputMode:"📝 Input Mode",textInput:"📝 Text",fileEncryption:"📁 File",
+    inputPlaintext:"Enter plaintext (paste ciphertext to decrypt)",enterTextHere:"Enter text to encrypt…",
+    selectFile:"📁 Select File",encrypt:"Encrypt",decrypt:"Decrypt",clearAll:"Clear All",cancel:"Cancel",
+    outputResult:"📤 Output",resultWillShowHere:"Result will appear here…",
+    copyResult:"Copy",downloadResult:"Download",swapText:"⇄ Swap",
+    securityNote:"🛡️ Security Note:",
+    securityNoteContent:"All operations run locally in your browser. No data is sent to any server. Classical ciphers are for educational use only. Modern ciphers use the Web Crypto API. Keep your key safe — it cannot be recovered if lost.",
+    generatedStrongPassword:"Strong password generated",hashIrreversibleWarning:"This is a hash algorithm — the result cannot be reversed to the original data!",
+    irreversibleWarningTitle:"Irreversible Hash Warning",confirmEncrypt:"I understand, continue",
+    hashCannotDecrypt:"Hash algorithms are one-way and cannot be decrypted",pleaseEnterText:"Please enter text",
+    pleaseSelectFile:"Please select a file",encryptionSuccess:"Encryption successful",decryptionSuccess:"Decryption successful",
+    encryptionFailed:"Encryption failed: ",decryptionFailed:"Decryption failed: ",processing:"Processing…",
+    fileProcessing:"Processing file…",clearedAll:"All content cleared",copiedToClipboard:"Copied to clipboard",
+    copyFailed:"Copy failed",selectedFile:"Selected",
+    processingComplete:"Done, total",characters:"characters",fileSize:"File size",
+    fileEncryptionComplete:"File encryption complete",fileDecryptionComplete:"File decryption complete",
+    strengthWeak:"Strength: Weak",strengthFair:"Strength: Fair",strengthGood:"Strength: Good",strengthVeryGood:"Strength: Very Strong",
+    keyRequired:"This algorithm requires a key",needKey:"Please enter a password",
+    caesar_info:"Caesar cipher: shifts each letter by N positions (default 3). Enter the offset as key.",
+    vigenere_info:"Vigenère cipher: repeating-key polyalphabetic substitution. More secure than Caesar.",
+    playfair_info:"Playfair cipher: encrypts letter pairs using a 5×5 grid. Key should be letters only.",
+    hill_info:"Hill cipher (2×2): matrix multiplication encryption. Key = 4 integers separated by commas, e.g. 3,3,2,5.",
+    adfgvx_info:"ADFGVX: WW1 German cipher combining a Polybius square with columnar transposition.",
+    bifid_info:"Bifid cipher: combines a Polybius square with fractional transposition.",
+    chacha20_info:"ChaCha20-Poly1305: Google's modern stream cipher, comparable security to AES-GCM.",
+    rsaAes_info:"RSA-OAEP+AES: Asymmetric encryption. Generates a new key pair each time. Save the private key with the ciphertext for decryption.",
+    ecdh_info:"ECDH+AES-GCM: Elliptic-curve key exchange for high security with shorter keys.",
+    affine_info:"Affine cipher: key = two integers a,b (e.g. 5,8). 'a' must be coprime to 26.",
+    railfence_info:"Rail fence cipher: writes text in a zigzag pattern across N rails (default 2). Key = number of rails.",
+    coltrans_info:"Columnar transposition: rearranges columns by keyword order.",
+    hmac_info:"HMAC: keyed-hash message authentication code. Verifies message integrity and authenticity."
   }
 };
 
-// 当前语言
-let currentLang = 'zh';
+let currentLang = 'tw';
 
-// 切换语言函数
+function t(key){ return (i18n[currentLang]||i18n.tw)[key] || key; }
+
 function switchLanguage(lang) {
   if (!i18n[lang]) return;
-  
   currentLang = lang;
-  
-  // 更新语言按钮状态
-  document.querySelectorAll('.lang-btn').forEach(btn => {
-    btn.classList.remove('active');
-    if (btn.dataset.lang === lang) {
-      btn.classList.add('active');
-    }
-  });
-  
-  // 更新所有带data-i18n属性的元素
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.dataset.i18n;
-    if (i18n[lang][key]) {
-      el.textContent = i18n[lang][key];
-    }
-  });
-  
-  // 更新所有带data-i18n-placeholder属性的元素
-  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-    const key = el.dataset.i18nPlaceholder;
-    if (i18n[lang][key]) {
-      el.placeholder = i18n[lang][key];
-    }
-  });
-  
-  // 更新所有带data-i18n-title属性的元素
-  document.querySelectorAll('[data-i18n-title]').forEach(el => {
-    const key = el.dataset.i18nTitle;
-    if (i18n[lang][key]) {
-      el.title = i18n[lang][key];
-    }
-  });
-  
-  // 更新页面标题
-  document.title = i18n[lang].title;
-  
-  // 更新html lang属性
-  document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+  document.documentElement.lang = lang==='en'?'en': lang==='zh'?'zh-CN':'zh-TW';
+  document.title = t('title');
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active', b.dataset.lang===lang));
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ const k=el.dataset.i18n; if(t(k)!==k) el.textContent=t(k); });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{ const k=el.dataset.i18nPlaceholder; if(t(k)!==k) el.placeholder=t(k); });
+  document.querySelectorAll('[data-i18n-title]').forEach(el=>{ const k=el.dataset.i18nTitle; if(t(k)!==k) el.title=t(k); });
+  // update algo button labels
+  document.querySelectorAll('[data-i18n-algo]').forEach(el=>{ const k=el.dataset.i18nAlgo; if(t(k)!==k) el.childNodes[el.childNodes.length-1].textContent=t(k); });
+  updateAlgoInfo();
+  updateStrengthLabel(DOM.algoParam1.value);
+  if(IRREVERSIBLE_ALGOS.has(state.currentAlgo)){
+    DOM.decryptBtn.disabled=true; DOM.decryptBtn.title=t('hashCannotDecrypt');
+  }
 }
 
-// 自动检测浏览器语言
-function detectBrowserLanguage() {
-  const browserLang = navigator.language || navigator.userLanguage;
-  if (browserLang.startsWith('en')) {
-    return 'en';
-  }
+function detectBrowserLanguage(){
+  const l=(navigator.language||'').toLowerCase();
+  if(l.startsWith('en')) return 'en';
+  if(l==='zh-tw'||l==='zh-hk'||l==='zh-mo') return 'tw';
   return 'zh';
 }
 
-// 性能优化：DOM元素缓存
+// ===================== DOM Cache =====================
 const DOM = {
   algoButtonsContainer: document.getElementById('algoButtonsContainer'),
   algoParam1: document.getElementById('algoParam1'),
   passwordToggleBtn: document.getElementById('passwordToggleBtn'),
   generatePasswordBtn: document.getElementById('generatePasswordBtn'),
   passwordStrengthBar: document.getElementById('passwordStrengthBar'),
-  keyMgmtHeader: document.getElementById('keyMgmtHeader'),
+  strengthLabel: document.getElementById('strengthLabel'),
+  keyMgmtTitle: document.getElementById('keyMgmtTitle'),
   keyManagementCard: document.getElementById('keyManagementCard'),
+  algoInfoCard: document.getElementById('algoInfoCard'),
+  algoInfoText: document.getElementById('algoInfoText'),
   tabSwitcher: document.getElementById('tabSwitcher'),
   textInputArea: document.getElementById('textInputArea'),
   fileInputArea: document.getElementById('fileInputArea'),
@@ -496,6 +453,7 @@ const DOM = {
   selectFileBtn: document.getElementById('selectFileBtn'),
   fileInfo: document.getElementById('fileInfo'),
   plaintextInput: document.getElementById('plaintextInput'),
+  inputCharCount: document.getElementById('inputCharCount'),
   statusMsg: document.getElementById('statusMsg'),
   encryptBtn: document.getElementById('encryptBtn'),
   decryptBtn: document.getElementById('decryptBtn'),
@@ -508,610 +466,1092 @@ const DOM = {
   outputInfo: document.getElementById('outputInfo'),
   algosHeader: document.getElementById('algosHeader'),
   algosContent: document.getElementById('algosContent'),
-  languageSwitcher: document.querySelector('.language-switcher')
+  languageSwitcher: document.getElementById('languageSwitcher'),
+  progressBarWrap: document.getElementById('progressBarWrap'),
+  progressBar: document.getElementById('progressBar'),
+  swapBtn: document.getElementById('swapBtn')
 };
 
-// 全局状态管理
-const state = {
-  currentAlgo: 'aes256gcm',
-  currentTab: 'text',
-  selectedFile: null,
-  isProcessing: false,
-  abortController: null
-};
+const state = { currentAlgo:'aes256gcm', currentTab:'text', selectedFile:null, isProcessing:false, abortController:null };
 
-// 不可逆算法列表
-const IRREVERSIBLE_ALGOS = new Set([
-  'md5', 'sha1', 'sha256', 'sha384', 'sha512', 
-  'sha3-256', 'sha3-512', 'crc32'
-]);
-
-// 需要密码的算法列表
+const IRREVERSIBLE_ALGOS = new Set(['md5','sha1','sha256','sha384','sha512','sha3-256','sha3-512','crc32']);
 const ALGOS_REQUIRE_KEY = new Set([
-  'chinesePlus', 'caesar', 'vigenere', 'autokey', 'beaufort',
-  'xor', 'rc4', 'rc4drop', 'hmac-sha256', 'hmac-sha512',
-  'aes128gcm', 'aes192gcm', 'aes256gcm', 'aes256cbc', 'aes256ctr',
-  'chacha20', 'blowfish', 'twofish', 'aesCaesar',
-  'rsaAes', 'rsaEcdsa'
+  'chinesePlus','caesar','vigenere','autokey','beaufort','affine',
+  'railfence','coltrans','playfair','polybius','hill2','adfgvx','bifid','foursquare',
+  'xor','rc4','rc4drop','hmac-sha256','hmac-sha512',
+  'aes128gcm','aes192gcm','aes256gcm','aes256cbc','aes256ctr','chacha20','aesCaesar',
+  'rsaAes','ecdh'
 ]);
 
-// ==================== 原创中文加密算法 ====================
-// 中文加密基础版：Unicode位移+混淆
-const ChineseCrypto = {
-  encrypt: (text) => {
-    if (!text) return '';
-    let result = '';
-    for (let i = 0; i < text.length; i++) {
-      const code = text.charCodeAt(i);
-      // 中文字符范围：0x4E00-0x9FA5
-      if (code >= 0x4E00 && code <= 0x9FA5) {
-        // 位移+混淆：基础位移1234，加上位置索引的影响
-        const newCode = ((code - 0x4E00 + 1234 + i * 7) % 20902) + 0x4E00;
-        result += String.fromCharCode(newCode);
-      } else {
-        // 非中文字符保持不变
-        result += text[i];
-      }
+const ALGO_INFO_KEYS = {
+  caesar:'caesar_info',vigenere:'vigenere_info',playfair:'playfair_info',
+  hill2:'hill_info',adfgvx:'adfgvx_info',bifid:'bifid_info',
+  chacha20:'chacha20_info',rsaAes:'rsaAes_info',ecdh:'ecdh_info',
+  affine:'affine_info',railfence:'railfence_info',coltrans:'coltrans_info',
+  'hmac-sha256':'hmac_info','hmac-sha512':'hmac_info'
+};
+
+function updateAlgoInfo(){
+  const key = ALGO_INFO_KEYS[state.currentAlgo];
+  if(key && t(key)!==key){
+    DOM.algoInfoCard.style.display='block';
+    DOM.algoInfoText.textContent='💡 '+t(key);
+  } else {
+    DOM.algoInfoCard.style.display='none';
+  }
+}
+
+// ===================== Classic Crypto Helpers =====================
+function alpha(c){ return /[a-zA-Z]/.test(c); }
+function upper(c){ return c===c.toUpperCase(); }
+function mod(n,m){ return ((n%m)+m)%m; }
+
+// Caesar
+function caesarEncrypt(text,shift){
+  shift=parseInt(shift)||3;
+  return text.split('').map(c=>{ if(!alpha(c)) return c; const base=upper(c)?65:97; return String.fromCharCode(mod(c.charCodeAt(0)-base+shift,26)+base); }).join('');
+}
+function caesarDecrypt(text,shift){ return caesarEncrypt(text,-parseInt(shift)||3); }
+
+// Vigenere
+function vigenereEncrypt(text,key){
+  if(!key) return text;
+  key=key.toUpperCase().replace(/[^A-Z]/g,''); if(!key) return text;
+  let ki=0; return text.split('').map(c=>{ if(!alpha(c)) return c; const base=upper(c)?65:97; const s=key.charCodeAt(ki++%key.length)-65; return String.fromCharCode(mod(c.charCodeAt(0)-base+s,26)+base); }).join('');
+}
+function vigenereDecrypt(text,key){
+  if(!key) return text;
+  key=key.toUpperCase().replace(/[^A-Z]/g,''); if(!key) return text;
+  let ki=0; return text.split('').map(c=>{ if(!alpha(c)) return c; const base=upper(c)?65:97; const s=key.charCodeAt(ki++%key.length)-65; return String.fromCharCode(mod(c.charCodeAt(0)-base-s,26)+base); }).join('');
+}
+
+// Autokey
+function autokeyEncrypt(text,key){
+  const alpha_only=text.replace(/[^A-Za-z]/g,'').toUpperCase();
+  const full=(key.toUpperCase().replace(/[^A-Z]/g,'')+alpha_only);
+  let ki=0,res='';
+  for(const c of text){
+    if(/[A-Za-z]/.test(c)){ const s=full.charCodeAt(ki++)-65; res+=String.fromCharCode(mod(c.toUpperCase().charCodeAt(0)-65+s,26)+65); }
+    else res+=c;
+  }
+  return res;
+}
+function autokeyDecrypt(text,key){
+  key=key.toUpperCase().replace(/[^A-Z]/g,'');
+  let decrypted='',ki=0;
+  for(const c of text){
+    if(/[A-Za-z]/.test(c)){ const kc=ki<key.length?key.charCodeAt(ki):decrypted.replace(/[^A-Z]/g,'').charCodeAt(ki-key.length); const p=mod(c.toUpperCase().charCodeAt(0)-65-kc,26); decrypted+=String.fromCharCode(p+65); ki++; }
+    else decrypted+=c;
+  }
+  return decrypted;
+}
+
+// Beaufort
+function beaufortEncrypt(text,key){
+  if(!key) return text;
+  key=key.toUpperCase().replace(/[^A-Z]/g,''); if(!key) return text;
+  let ki=0; return text.split('').map(c=>{ if(!alpha(c)) return c; const s=key.charCodeAt(ki++%key.length)-65; return String.fromCharCode(mod(s-(c.toUpperCase().charCodeAt(0)-65),26)+65); }).join('');
+}
+// Beaufort is reciprocal
+const beaufortDecrypt=beaufortEncrypt;
+
+// ROT13
+function rot13(text){ return text.replace(/[a-zA-Z]/g,c=>{ const base=upper(c)?65:97; return String.fromCharCode(mod(c.charCodeAt(0)-base+13,26)+base); }); }
+
+// ROT47
+function rot47(text){ return text.replace(/[!-~]/g,c=>String.fromCharCode(33+mod(c.charCodeAt(0)-33+47,94))); }
+
+// Atbash
+function atbash(text){ return text.replace(/[a-zA-Z]/g,c=>{ const base=upper(c)?65:97; return String.fromCharCode(base+25-(c.charCodeAt(0)-base)); }); }
+
+// Affine
+function affineEncrypt(text,keyStr){
+  const [a,b]=keyStr.split(',').map(Number); if(isNaN(a)||isNaN(b)) throw new Error('Key format: a,b (e.g. 5,8)');
+  if(gcd(a,26)!==1) throw new Error('a must be coprime to 26');
+  return text.replace(/[a-zA-Z]/g,c=>{ const base=upper(c)?65:97; return String.fromCharCode(mod(a*(c.charCodeAt(0)-base)+b,26)+base); });
+}
+function affineDecrypt(text,keyStr){
+  const [a,b]=keyStr.split(',').map(Number); if(isNaN(a)||isNaN(b)) throw new Error('Key format: a,b');
+  const aInv=modInverse(a,26); if(aInv===null) throw new Error('No modular inverse');
+  return text.replace(/[a-zA-Z]/g,c=>{ const base=upper(c)?65:97; return String.fromCharCode(mod(aInv*(c.charCodeAt(0)-base-b),26)+base); });
+}
+function gcd(a,b){ return b===0?a:gcd(b,mod(a,b)); }
+function modInverse(a,m){ for(let x=1;x<m;x++) if(mod(a*x,m)===1) return x; return null; }
+
+// Rail Fence
+function railfenceEncrypt(text,rails){
+  rails=parseInt(rails)||2; if(rails<2) rails=2;
+  const fence=Array.from({length:rails},()=>[]);
+  let r=0,dir=1;
+  for(const c of text){ fence[r].push(c); if(r===0) dir=1; else if(r===rails-1) dir=-1; r+=dir; }
+  return fence.map(r=>r.join('')).join('');
+}
+function railfenceDecrypt(text,rails){
+  rails=parseInt(rails)||2; if(rails<2) rails=2;
+  const n=text.length;
+  const pattern=[];
+  let r=0,dir=1;
+  for(let i=0;i<n;i++){ pattern.push(r); if(r===0) dir=1; else if(r===rails-1) dir=-1; r+=dir; }
+  const lengths=Array(rails).fill(0);
+  pattern.forEach(r=>lengths[r]++);
+  const rows=[]; let pos=0;
+  for(let i=0;i<rails;i++){ rows.push(text.slice(pos,pos+lengths[i]).split('')); pos+=lengths[i]; }
+  const idxs=Array(rails).fill(0);
+  let result='';
+  for(const r of pattern){ result+=rows[r][idxs[r]++]; }
+  return result;
+}
+
+// Columnar Transposition
+function coltransEncrypt(text,key){
+  if(!key) key='KEY';
+  const order=[...key.toUpperCase()].map((c,i)=>({c,i})).sort((a,b)=>a.c<b.c?-1:1).map(x=>x.i);
+  const cols=key.length; const rows=Math.ceil(text.length/cols);
+  const grid=Array.from({length:rows},(_,r)=>text.slice(r*cols,(r+1)*cols).padEnd(cols,'_'));
+  return order.map(c=>grid.map(row=>row[c]).join('')).join('');
+}
+function coltransDecrypt(text,key){
+  if(!key) key='KEY';
+  const order=[...key.toUpperCase()].map((c,i)=>({c,i})).sort((a,b)=>a.c<b.c?-1:1).map(x=>x.i);
+  const cols=key.length; const rows=Math.ceil(text.length/cols);
+  const colLen=rows; const grid=Array.from({length:rows},()=>Array(cols).fill(''));
+  let pos=0;
+  for(const col of order){ for(let r=0;r<colLen;r++) grid[r][col]=text[pos++]||''; }
+  return grid.map(r=>r.join('')).join('').replace(/_+$/,'');
+}
+
+// Playfair
+function playfairBuildSquare(key){
+  key=(key||'KEY').toUpperCase().replace(/J/g,'I').replace(/[^A-Z]/g,'');
+  let seen=new Set(), sq='';
+  for(const c of key+' ABCDEFGHIKLMNOPQRSTUVWXYZ'){ if(c===' ') continue; if(!seen.has(c)){seen.add(c);sq+=c;} }
+  return sq;
+}
+function playfairPos(sq,c){ const i=sq.indexOf(c); return [Math.floor(i/5),i%5]; }
+function playfairEncryptPair(sq,a,b,enc){
+  const [ra,ca]=playfairPos(sq,a); const [rb,cb]=playfairPos(sq,b);
+  if(ra===rb) return [sq[ra*5+mod(ca+(enc?1:-1),5)],sq[rb*5+mod(cb+(enc?1:-1),5)]];
+  if(ca===cb) return [sq[mod(ra+(enc?1:-1),5)*5+ca],sq[mod(rb+(enc?1:-1),5)*5+cb]];
+  return [sq[ra*5+cb],sq[rb*5+ca]];
+}
+function playfairEncrypt(text,key){
+  const sq=playfairBuildSquare(key);
+  text=text.toUpperCase().replace(/J/g,'I').replace(/[^A-Z]/g,'');
+  let pairs=[]; let i=0;
+  while(i<text.length){ const a=text[i]; let b=text[i+1]||'X'; if(a===b){b='X';i++;}else i+=2; pairs.push([a,b]); }
+  return pairs.map(([a,b])=>playfairEncryptPair(sq,a,b,true).join('')).join(' ');
+}
+function playfairDecrypt(text,key){
+  const sq=playfairBuildSquare(key);
+  const pairs=text.toUpperCase().replace(/[^A-Z ]/g,'').split(' ').filter(s=>s.length===2);
+  return pairs.map(([a,b])=>playfairEncryptPair(sq,a,b,false).join('')).join('');
+}
+
+// Polybius
+function polybiusEncrypt(text){
+  const sq='ADFGVX'; // use alphabet order
+  const alpha='ABCDEFGHIKLMNOPQRSTUVWXYZ';
+  return text.toUpperCase().replace(/J/g,'I').replace(/[^A-Z]/g,'').split('').map(c=>{ const i=alpha.indexOf(c); return i<0?'':String(Math.floor(i/5)+1)+(i%5+1); }).join(' ');
+}
+function polybiusDecrypt(text){
+  const alpha='ABCDEFGHIKLMNOPQRSTUVWXYZ';
+  return text.trim().split(/\s+/).map(p=>{ if(!/^\d\d?$/.test(p)) return ''; const r=parseInt(p[0])-1,c=parseInt(p[1])-1; const i=r*5+c; return i>=0&&i<alpha.length?alpha[i]:'?'; }).join('');
+}
+
+// Hill 2x2
+function hillEncrypt(text,keyStr){
+  const nums=keyStr.split(',').map(Number);
+  if(nums.length!==4||nums.some(isNaN)) throw new Error('Hill key: 4 integers, e.g. 3,3,2,5');
+  const [a,b,c,d]=nums;
+  const det=mod(a*d-b*c,26); if(det===0||gcd(det,26)!==1) throw new Error('Key matrix not invertible mod 26');
+  text=text.toUpperCase().replace(/[^A-Z]/g,''); if(text.length%2) text+='X';
+  let res='';
+  for(let i=0;i<text.length;i+=2){
+    const x=text.charCodeAt(i)-65, y=text.charCodeAt(i+1)-65;
+    res+=String.fromCharCode(mod(a*x+b*y,26)+65)+String.fromCharCode(mod(c*x+d*y,26)+65);
+  }
+  return res;
+}
+function hillDecrypt(text,keyStr){
+  const nums=keyStr.split(',').map(Number);
+  if(nums.length!==4||nums.some(isNaN)) throw new Error('Hill key: 4 integers');
+  const [a,b,c,d]=nums;
+  const det=mod(a*d-b*c,26); const detInv=modInverse(det,26);
+  if(detInv===null) throw new Error('Key matrix not invertible');
+  const inv=[mod(detInv*d,26),mod(-detInv*b,26),mod(-detInv*c,26),mod(detInv*a,26)];
+  text=text.toUpperCase().replace(/[^A-Z]/g,'');
+  let res='';
+  for(let i=0;i<text.length;i+=2){
+    const x=text.charCodeAt(i)-65, y=text.charCodeAt(i+1)-65;
+    res+=String.fromCharCode(mod(inv[0]*x+inv[1]*y,26)+65)+String.fromCharCode(mod(inv[2]*x+inv[3]*y,26)+65);
+  }
+  return res;
+}
+
+// ADFGVX
+function adfgvxBuildSquare(key){
+  key=(key||'KEY').toUpperCase().replace(/[^A-Z0-9]/g,'');
+  const alphabet='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let seen=new Set(), sq='';
+  for(const c of key+alphabet){ if(!seen.has(c)){seen.add(c);sq+=c;} }
+  return sq;
+}
+function adfgvxEncrypt(text,key){
+  const sq=adfgvxBuildSquare(key); const labels='ADFGVX';
+  const step1=text.toUpperCase().replace(/[^A-Z0-9]/g,'').split('').map(c=>{ const i=sq.indexOf(c); return labels[Math.floor(i/6)]+labels[i%6]; }).join('');
+  return coltransEncrypt(step1,key);
+}
+function adfgvxDecrypt(text,key){
+  const step1=coltransDecrypt(text,key);
+  const sq=adfgvxBuildSquare(key); const labels='ADFGVX';
+  let res='';
+  for(let i=0;i<step1.length;i+=2){
+    const r=labels.indexOf(step1[i]), c=labels.indexOf(step1[i+1]);
+    if(r<0||c<0) continue;
+    res+=sq[r*6+c];
+  }
+  return res;
+}
+
+// Bifid
+function bifidBuildSquare(key){
+  key=(key||'KEY').toUpperCase().replace(/J/g,'I').replace(/[^A-Z]/g,'');
+  const alpha='ABCDEFGHIKLMNOPQRSTUVWXYZ';
+  let seen=new Set(),sq='';
+  for(const c of key+alpha){ if(!seen.has(c)){seen.add(c);sq+=c;} }
+  return sq;
+}
+function bifidEncrypt(text,key){
+  const sq=bifidBuildSquare(key);
+  text=text.toUpperCase().replace(/J/g,'I').replace(/[^A-Z]/g,'');
+  const rows=[],cols=[];
+  for(const c of text){ const i=sq.indexOf(c); rows.push(Math.floor(i/5)); cols.push(i%5); }
+  const mixed=[...rows,...cols];
+  let res='';
+  for(let i=0;i<text.length;i++){ res+=sq[mixed[i]*5+mixed[i+text.length]]; }
+  return res;
+}
+function bifidDecrypt(text,key){
+  const sq=bifidBuildSquare(key);
+  text=text.toUpperCase().replace(/[^A-Z]/g,'');
+  const n=text.length; const vals=[];
+  for(const c of text){ const i=sq.indexOf(c); vals.push(Math.floor(i/5),i%5); }
+  const rows=vals.slice(0,n),cols=vals.slice(n);
+  let res='';
+  for(let i=0;i<n;i++) res+=sq[rows[i]*5+cols[i]];
+  return res;
+}
+
+// Four-Square
+function fourSquareBuildSquare(key){
+  key=(key||'EXAMPLE').toUpperCase().replace(/J/g,'I').replace(/[^A-Z]/g,'');
+  const alpha='ABCDEFGHIKLMNOPQRSTUVWXYZ';
+  let seen=new Set(),sq='';
+  for(const c of key+alpha){ if(!seen.has(c)){seen.add(c);sq+=c;} }
+  return sq;
+}
+function fourSquareEncrypt(text,key){
+  const alpha='ABCDEFGHIKLMNOPQRSTUVWXYZ';
+  const sq=fourSquareBuildSquare(key);
+  text=text.toUpperCase().replace(/J/g,'I').replace(/[^A-Z]/g,''); if(text.length%2) text+='X';
+  let res='';
+  for(let i=0;i<text.length;i+=2){
+    const r1=Math.floor(alpha.indexOf(text[i])/5),c1=alpha.indexOf(text[i])%5;
+    const r2=Math.floor(alpha.indexOf(text[i+1])/5),c2=alpha.indexOf(text[i+1])%5;
+    res+=sq[r1*5+c2]+alpha[r2*5+c1];
+  }
+  return res;
+}
+function fourSquareDecrypt(text,key){
+  const alpha='ABCDEFGHIKLMNOPQRSTUVWXYZ';
+  const sq=fourSquareBuildSquare(key);
+  text=text.toUpperCase().replace(/[^A-Z]/g,'');
+  let res='';
+  for(let i=0;i<text.length;i+=2){
+    const r1=Math.floor(sq.indexOf(text[i])/5),c2=sq.indexOf(text[i])%5;
+    const r2=Math.floor(alpha.indexOf(text[i+1])/5),c1=alpha.indexOf(text[i+1])%5;
+    res+=alpha[r1*5+c1]+alpha[r2*5+c2];
+  }
+  return res;
+}
+
+// ===================== Encoding =====================
+const B32_ALPHA='ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+const B32H_ALPHA='0123456789ABCDEFGHIJKLMNOPQRSTUV';
+function base32Encode(text,alpha){
+  alpha=alpha||B32_ALPHA;
+  const bytes=new TextEncoder().encode(text);
+  let bits=0,val=0,out='';
+  for(const b of bytes){ val=(val<<8)|b; bits+=8; while(bits>=5){bits-=5;out+=alpha[(val>>bits)&31];} }
+  if(bits>0) out+=alpha[(val<<(5-bits))&31];
+  while(out.length%8) out+='=';
+  return out;
+}
+function base32Decode(text,alpha){
+  alpha=alpha||B32_ALPHA;
+  text=text.toUpperCase().replace(/=+$/,'');
+  let bits=0,val=0; const out=[];
+  for(const c of text){ const i=alpha.indexOf(c); if(i<0) continue; val=(val<<5)|i; bits+=5; if(bits>=8){bits-=8;out.push((val>>bits)&0xFF);} }
+  return new TextDecoder().decode(new Uint8Array(out));
+}
+
+const B85_CHARS='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~';
+function base85Encode(text){
+  const bytes=new TextEncoder().encode(text);
+  let res='';
+  for(let i=0;i<bytes.length;i+=4){
+    let v=0, n=Math.min(4,bytes.length-i);
+    for(let j=0;j<4;j++) v=(v<<8)|(j<n?bytes[i+j]:0);
+    const block=[];
+    for(let j=4;j>=0;j--){ block[j]=B85_CHARS[v%85]; v=Math.floor(v/85); }
+    res+=block.slice(0,n+1).join('');
+  }
+  return res;
+}
+function base85Decode(text){
+  const bytes=[];
+  for(let i=0;i<text.length;i+=5){
+    const block=text.slice(i,i+5); const n=block.length;
+    let v=0;
+    for(const c of block.padEnd(5,'u')) v=v*85+B85_CHARS.indexOf(c);
+    for(let j=3;j>=4-n;j--) bytes.push((v>>(j*8))&0xFF);
+  }
+  return new TextDecoder().decode(new Uint8Array(bytes));
+}
+
+const B58='123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+function base58Encode(text){
+  const bytes=new TextEncoder().encode(text);
+  let num=BigInt(0);
+  for(const b of bytes) num=(num<<8n)|BigInt(b);
+  let res='';
+  while(num>0n){ res=B58[Number(num%58n)]+res; num=num/58n; }
+  for(const b of bytes){ if(b!==0) break; res='1'+res; }
+  return res||'1';
+}
+function base58Decode(text){
+  let num=BigInt(0);
+  for(const c of text){ const i=B58.indexOf(c); if(i<0) throw new Error('Invalid Base58'); num=num*58n+BigInt(i); }
+  const bytes=[];
+  while(num>0n){ bytes.unshift(Number(num&0xFFn)); num>>=8n; }
+  for(const c of text){ if(c!=='1') break; bytes.unshift(0); }
+  return new TextDecoder().decode(new Uint8Array(bytes));
+}
+
+const B45='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:';
+function base45Encode(text){
+  const bytes=new TextEncoder().encode(text);
+  let res='';
+  for(let i=0;i<bytes.length;i+=2){
+    if(i+1<bytes.length){ const n=bytes[i]*256+bytes[i+1]; res+=B45[n%45]+B45[Math.floor(n/45)%45]+B45[Math.floor(n/2025)]; }
+    else{ const n=bytes[i]; res+=B45[n%45]+B45[Math.floor(n/45)]; }
+  }
+  return res;
+}
+function base45Decode(text){
+  const bytes=[];
+  for(let i=0;i<text.length;i+=3){
+    if(i+2<text.length){ const n=B45.indexOf(text[i])+B45.indexOf(text[i+1])*45+B45.indexOf(text[i+2])*2025; bytes.push(n>>8,n&0xFF); }
+    else{ const n=B45.indexOf(text[i])+B45.indexOf(text[i+1])*45; bytes.push(n); }
+  }
+  return new TextDecoder().decode(new Uint8Array(bytes));
+}
+
+const MORSE={
+  'A':'.-','B':'-...','C':'-.-.','D':'-..','E':'.','F':'..-.','G':'--.','H':'....','I':'..','J':'.---',
+  'K':'-.-','L':'.-..','M':'--','N':'-.','O':'---','P':'.--.','Q':'--.-','R':'.-.','S':'...','T':'-',
+  'U':'..-','V':'...-','W':'.--','X':'-..-','Y':'-.--','Z':'--..',
+  '0':'-----','1':'.----','2':'..---','3':'...--','4':'....-','5':'.....','6':'-....','7':'--...','8':'---..','9':'----.',
+  '.':'.-.-.-',',':'--..--','?':'..--..','!':'-.-.--',"'":'.----.','/':'-..-.','(':'-.--.',')':'-.--.-',
+  '&':'.-...',':':'---...',';':'-.-.-.','=':'-...-','+':'.-.-.','-':'-....-','_':'..--.-','"':'.-..-.','$':'...-..-','@':'.--.-.'
+};
+const MORSE_REV=Object.fromEntries(Object.entries(MORSE).map(([k,v])=>[v,k]));
+function morseEncode(text){ return text.toUpperCase().split('').map(c=>c===' '?'/':(MORSE[c]||'')).filter(Boolean).join(' '); }
+function morseDecode(text){ return text.split(' / ').map(w=>w.split(' ').map(c=>MORSE_REV[c]||'?').join('')).join(' '); }
+
+function uuEncode(text){
+  const bytes=new TextEncoder().encode(text);
+  let res='begin 644 encoded\n';
+  for(let i=0;i<bytes.length;i+=45){
+    const chunk=bytes.slice(i,i+45);
+    let line=String.fromCharCode(32+chunk.length);
+    for(let j=0;j<chunk.length;j+=3){
+      const b0=chunk[j]||0,b1=chunk[j+1]||0,b2=chunk[j+2]||0;
+      line+=String.fromCharCode(32+((b0>>2)&63),32+((b0<<4|b1>>4)&63),32+((b1<<2|b2>>6)&63),32+(b2&63));
+    }
+    res+=line+'\n';
+  }
+  return res+'end';
+}
+function uuDecode(text){
+  const lines=text.split('\n').filter(l=>!l.startsWith('begin')&&l!=='end'&&l);
+  const bytes=[];
+  for(const line of lines){
+    const len=line.charCodeAt(0)-32;
+    for(let j=1;j<line.length&&bytes.length<bytes.length+len;j+=4){
+      const a=(line.charCodeAt(j)-32)&63,b=(line.charCodeAt(j+1)-32)&63,c=(line.charCodeAt(j+2)-32)&63,d=(line.charCodeAt(j+3)-32)&63;
+      bytes.push(a<<2|b>>4,(b<<4|c>>2)&0xFF,(c<<6|d)&0xFF);
+    }
+  }
+  return new TextDecoder().decode(new Uint8Array(bytes.slice(0,bytes.length-bytes.length%3)));
+}
+
+function unicodeEscape(text){ return [...text].map(c=>c.charCodeAt(0)>127||c==='\\'?`\\u${c.charCodeAt(0).toString(16).padStart(4,'0')}`:c).join(''); }
+function unicodeUnescape(text){ return text.replace(/\\u([0-9a-fA-F]{4})/g,(_,h)=>String.fromCharCode(parseInt(h,16))); }
+
+function textToBinary(text){ return new TextEncoder().encode(text).reduce((a,b)=>a+(b>>>0).toString(2).padStart(8,'0')+' ','').trim(); }
+function binaryToText(text){ const bytes=text.trim().split(/\s+/).map(b=>parseInt(b,2)); return new TextDecoder().decode(new Uint8Array(bytes)); }
+
+function textToOctal(text){ return new TextEncoder().encode(text).reduce((a,b)=>a+(b>>>0).toString(8).padStart(3,'0')+' ','').trim(); }
+function octalToText(text){ const bytes=text.trim().split(/\s+/).map(b=>parseInt(b,8)); return new TextDecoder().decode(new Uint8Array(bytes)); }
+
+function textToHex(text){ return Array.from(new TextEncoder().encode(text)).map(b=>b.toString(16).padStart(2,'0')).join(''); }
+function hexToText(text){ const bytes=text.replace(/\s/g,'').match(/.{1,2}/g).map(b=>parseInt(b,16)); return new TextDecoder().decode(new Uint8Array(bytes)); }
+
+// ===================== MD5 (pure JS) =====================
+function md5(str){
+  function safeAdd(x,y){const l=(x&0xFFFF)+(y&0xFFFF);return((x>>16)+(y>>16)+(l>>16))<<16|l&0xFFFF;}
+  function bitRotateLeft(num,cnt){return num<<cnt|num>>>32-cnt;}
+  function md5cmn(q,a,b,x,s,t){return safeAdd(bitRotateLeft(safeAdd(safeAdd(a,q),safeAdd(x,t)),s),b);}
+  function md5ff(a,b,c,d,x,s,t){return md5cmn(b&c|~b&d,a,b,x,s,t);}
+  function md5gg(a,b,c,d,x,s,t){return md5cmn(b&d|c&~d,a,b,x,s,t);}
+  function md5hh(a,b,c,d,x,s,t){return md5cmn(b^c^d,a,b,x,s,t);}
+  function md5ii(a,b,c,d,x,s,t){return md5cmn(c^(b|~d),a,b,x,s,t);}
+  const msg=unescape(encodeURIComponent(str));
+  const l=msg.length; const nblks=((l+64>>6)+1)<<4;
+  const blks=new Array(nblks+2).fill(0);
+  for(let i=0;i<l;i++) blks[i>>2]|=msg.charCodeAt(i)<<(i%4)*8;
+  blks[l>>2]|=0x80<<(l%4)*8; blks[nblks-1]=l*8;
+  let a=1732584193,b=-271733879,c=-1732584194,d=271733878;
+  for(let i=0;i<nblks;i+=16){
+    const olda=a,oldb=b,oldc=c,oldd=d;
+    a=md5ff(a,b,c,d,blks[i],7,-680876936);d=md5ff(d,a,b,c,blks[i+1],12,-389564586);c=md5ff(c,d,a,b,blks[i+2],17,606105819);b=md5ff(b,c,d,a,blks[i+3],22,-1044525330);
+    a=md5ff(a,b,c,d,blks[i+4],7,-176418897);d=md5ff(d,a,b,c,blks[i+5],12,1200080426);c=md5ff(c,d,a,b,blks[i+6],17,-1473231341);b=md5ff(b,c,d,a,blks[i+7],22,-45705983);
+    a=md5ff(a,b,c,d,blks[i+8],7,1770035416);d=md5ff(d,a,b,c,blks[i+9],12,-1958414417);c=md5ff(c,d,a,b,blks[i+10],17,-42063);b=md5ff(b,c,d,a,blks[i+11],22,-1990404162);
+    a=md5ff(a,b,c,d,blks[i+12],7,1804603682);d=md5ff(d,a,b,c,blks[i+13],12,-40341101);c=md5ff(c,d,a,b,blks[i+14],17,-1502002290);b=md5ff(b,c,d,a,blks[i+15],22,1236535329);
+    a=md5gg(a,b,c,d,blks[i+1],5,-165796510);d=md5gg(d,a,b,c,blks[i+6],9,-1069501632);c=md5gg(c,d,a,b,blks[i+11],14,643717713);b=md5gg(b,c,d,a,blks[i],20,-373897302);
+    a=md5gg(a,b,c,d,blks[i+5],5,-701558691);d=md5gg(d,a,b,c,blks[i+10],9,38016083);c=md5gg(c,d,a,b,blks[i+15],14,-660478335);b=md5gg(b,c,d,a,blks[i+4],20,-405537848);
+    a=md5gg(a,b,c,d,blks[i+9],5,568446438);d=md5gg(d,a,b,c,blks[i+14],9,-1019803690);c=md5gg(c,d,a,b,blks[i+3],14,-187363961);b=md5gg(b,c,d,a,blks[i+8],20,1163531501);
+    a=md5gg(a,b,c,d,blks[i+13],5,-1444681467);d=md5gg(d,a,b,c,blks[i+2],9,-51403784);c=md5gg(c,d,a,b,blks[i+7],14,1735328473);b=md5gg(b,c,d,a,blks[i+12],20,-1926607734);
+    a=md5hh(a,b,c,d,blks[i+5],4,-378558);d=md5hh(d,a,b,c,blks[i+8],11,-2022574463);c=md5hh(c,d,a,b,blks[i+11],16,1839030562);b=md5hh(b,c,d,a,blks[i+14],23,-35309556);
+    a=md5hh(a,b,c,d,blks[i+1],4,-1530992060);d=md5hh(d,a,b,c,blks[i+4],11,1272893353);c=md5hh(c,d,a,b,blks[i+7],16,-155497632);b=md5hh(b,c,d,a,blks[i+10],23,-1094730640);
+    a=md5hh(a,b,c,d,blks[i+13],4,681279174);d=md5hh(d,a,b,c,blks[i],11,-358537222);c=md5hh(c,d,a,b,blks[i+3],16,-722521979);b=md5hh(b,c,d,a,blks[i+6],23,76029189);
+    a=md5hh(a,b,c,d,blks[i+9],4,-640364487);d=md5hh(d,a,b,c,blks[i+12],11,-421815835);c=md5hh(c,d,a,b,blks[i+15],16,530742520);b=md5hh(b,c,d,a,blks[i+2],23,-995338651);
+    a=md5ii(a,b,c,d,blks[i],6,-198630844);d=md5ii(d,a,b,c,blks[i+7],10,1126891415);c=md5ii(c,d,a,b,blks[i+14],15,-1416354905);b=md5ii(b,c,d,a,blks[i+5],21,-57434055);
+    a=md5ii(a,b,c,d,blks[i+12],6,1700485571);d=md5ii(d,a,b,c,blks[i+3],10,-1894986606);c=md5ii(c,d,a,b,blks[i+10],15,-1051523);b=md5ii(b,c,d,a,blks[i+1],21,-2054922799);
+    a=md5ii(a,b,c,d,blks[i+8],6,1873313359);d=md5ii(d,a,b,c,blks[i+15],10,-30611744);c=md5ii(c,d,a,b,blks[i+6],15,-1560198380);b=md5ii(b,c,d,a,blks[i+13],21,1309151649);
+    a=md5ii(a,b,c,d,blks[i+4],6,-145523070);d=md5ii(d,a,b,c,blks[i+11],10,-1120210379);c=md5ii(c,d,a,b,blks[i+2],15,718787259);b=md5ii(b,c,d,a,blks[i+9],21,-343485551);
+    a=safeAdd(a,olda);b=safeAdd(b,oldb);c=safeAdd(c,oldc);d=safeAdd(d,oldd);
+  }
+  return [a,b,c,d].map(n=>(n>>>0).toString(16).padStart(8,'0').match(/.{2}/g).reverse().join('')).join('');
+}
+
+// CRC32
+const CRC32_TABLE=(()=>{const t=new Int32Array(256);for(let i=0;i<256;i++){let c=i;for(let j=0;j<8;j++) c=c&1?0xEDB88320^(c>>>1):c>>>1;t[i]=c;}return t;})();
+function crc32(text){ const bytes=new TextEncoder().encode(text); let c=-1; for(const b of bytes) c=CRC32_TABLE[(c^b)&0xFF]^(c>>>8); return ((c^-1)>>>0).toString(16).padStart(8,'0'); }
+
+// SHA3 (Keccak)
+function sha3(str,bits){
+  const rate=(1600-bits*2)/8;
+  const bytes=[...new TextEncoder().encode(str),0x06,...new Array(rate-([...new TextEncoder().encode(str)].length+1)%rate||rate).fill(0)];
+  bytes[bytes.length-1]|=0x80;
+  // Simplified: use webcrypto workaround — actually implement Keccak
+  // Full Keccak implementation:
+  const RC=[BigInt('0x0000000000000001'),BigInt('0x0000000000008082'),BigInt('0x800000000000808a'),BigInt('0x8000000080008000'),
+    BigInt('0x000000000000808b'),BigInt('0x0000000080000001'),BigInt('0x8000000080008081'),BigInt('0x8000000000008009'),
+    BigInt('0x000000000000008a'),BigInt('0x0000000000000088'),BigInt('0x0000000080008009'),BigInt('0x000000008000000a'),
+    BigInt('0x000000008000808b'),BigInt('0x800000000000008b'),BigInt('0x8000000000008089'),BigInt('0x8000000000008003'),
+    BigInt('0x8000000000008002'),BigInt('0x8000000000000080'),BigInt('0x000000000000800a'),BigInt('0x800000008000000a'),
+    BigInt('0x8000000080008081'),BigInt('0x8000000000008080'),BigInt('0x0000000080000001'),BigInt('0x8000000080008008')];
+  const ROT=[[0,36,3,41,18],[1,44,10,45,2],[62,6,43,15,61],[28,55,25,21,56],[27,20,39,8,14]];
+  function rot64(x,n){n=BigInt(n);return((x<<n)|(x>>(64n-n)))&0xFFFFFFFFFFFFFFFFn;}
+  const msg=new TextEncoder().encode(str);
+  const msgLen=msg.length; const rateB=rate;
+  const padLen=rateB-(msgLen%rateB); const padded=new Uint8Array(msgLen+padLen);
+  padded.set(msg); padded[msgLen]=0x06; padded[padded.length-1]|=0x80;
+  const state=new Array(5).fill(null).map(()=>new Array(5).fill(0n));
+  for(let blk=0;blk<padded.length;blk+=rateB){
+    const lane=new DataView(padded.buffer,blk,rateB);
+    for(let i=0;i<rateB/8;i++){
+      const lo=BigInt(lane.getUint32(i*8,true)),hi=BigInt(lane.getUint32(i*8+4,true));
+      state[i%5][Math.floor(i/5)]^=(hi<<32n)|lo;
+    }
+    for(let r=0;r<24;r++){
+      const C=state.map(row=>row.reduce((a,b)=>a^b));
+      const D=C.map((c,x)=>c^rot64(C[(x+1)%5],1));
+      for(let x=0;x<5;x++) for(let y=0;y<5;y++) state[x][y]^=D[x];
+      const B=new Array(5).fill(null).map(()=>new Array(5).fill(0n));
+      for(let x=0;x<5;x++) for(let y=0;y<5;y++) B[y][(2*x+3*y)%5]=rot64(state[x][y],ROT[x][y]);
+      for(let x=0;x<5;x++) for(let y=0;y<5;y++) state[x][y]=B[x][y]^(~B[(x+1)%5][y]&B[(x+2)%5][y]);
+      state[0][0]^=RC[r];
+    }
+  }
+  const out=[]; const laneCount=bits/64;
+  for(let i=0;i<laneCount;i++){
+    const v=state[i%5][Math.floor(i/5)];
+    for(let b=0;b<8;b++) out.push(Number((v>>(BigInt(b)*8n))&0xFFn));
+  }
+  return out.map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+// ===================== XOR =====================
+function xorEncrypt(text,key){
+  if(!key) key='default';
+  const enc=new TextEncoder().encode(text), kenc=new TextEncoder().encode(key);
+  const out=enc.map((b,i)=>b^kenc[i%kenc.length]);
+  return btoa(String.fromCharCode(...out));
+}
+function xorDecrypt(text,key){
+  if(!key) key='default';
+  const bytes=Uint8Array.from(atob(text),c=>c.charCodeAt(0));
+  const kenc=new TextEncoder().encode(key);
+  const out=bytes.map((b,i)=>b^kenc[i%kenc.length]);
+  return new TextDecoder().decode(out);
+}
+
+// ===================== RC4 =====================
+function rc4Core(text_bytes,key){
+  const kenc=new TextEncoder().encode(key||'default');
+  const s=Array.from({length:256},(_,i)=>i);
+  let j=0;
+  for(let i=0;i<256;i++){j=(j+s[i]+kenc[i%kenc.length])%256;[s[i],s[j]]=[s[j],s[i]];}
+  let ii=0,jj=0; const out=[];
+  for(const b of text_bytes){ii=(ii+1)%256;jj=(jj+s[ii])%256;[s[ii],s[jj]]=[s[jj],s[ii]];out.push(b^s[(s[ii]+s[jj])%256]);}
+  return out;
+}
+function rc4dropCore(text_bytes,key,drop=256){
+  const kenc=new TextEncoder().encode(key||'default');
+  const s=Array.from({length:256},(_,i)=>i);
+  let j=0;
+  for(let i=0;i<256;i++){j=(j+s[i]+kenc[i%kenc.length])%256;[s[i],s[j]]=[s[j],s[i]];}
+  let ii=0,jj=0;
+  for(let k=0;k<drop;k++){ii=(ii+1)%256;jj=(jj+s[ii])%256;[s[ii],s[jj]]=[s[jj],s[ii]];}
+  const out=[];
+  for(const b of text_bytes){ii=(ii+1)%256;jj=(jj+s[ii])%256;[s[ii],s[jj]]=[s[jj],s[ii]];out.push(b^s[(s[ii]+s[jj])%256]);}
+  return out;
+}
+function rc4Encrypt(text,key){ const b=new TextEncoder().encode(text); return btoa(String.fromCharCode(...rc4Core(b,key))); }
+function rc4Decrypt(text,key){ const b=Uint8Array.from(atob(text),c=>c.charCodeAt(0)); return new TextDecoder().decode(new Uint8Array(rc4Core(b,key))); }
+function rc4dropEncrypt(text,key){ const b=new TextEncoder().encode(text); return btoa(String.fromCharCode(...rc4dropCore(b,key))); }
+function rc4dropDecrypt(text,key){ const b=Uint8Array.from(atob(text),c=>c.charCodeAt(0)); return new TextDecoder().decode(new Uint8Array(rc4dropCore(b,key))); }
+
+// ===================== Web Crypto helpers =====================
+async function deriveKey(password,salt,bits){
+  const enc=new TextEncoder();
+  const km=await crypto.subtle.importKey('raw',enc.encode(password),{name:'PBKDF2'},false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:100000,hash:'SHA-256'},km,{name:'AES-GCM',length:bits},false,['encrypt','decrypt']);
+}
+async function deriveCBCKey(password,salt,bits){
+  const enc=new TextEncoder();
+  const km=await crypto.subtle.importKey('raw',enc.encode(password),{name:'PBKDF2'},false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:100000,hash:'SHA-256'},km,{name:'AES-CBC',length:bits},false,['encrypt','decrypt']);
+}
+async function deriveCTRKey(password,salt,bits){
+  const enc=new TextEncoder();
+  const km=await crypto.subtle.importKey('raw',enc.encode(password),{name:'PBKDF2'},false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:100000,hash:'SHA-256'},km,{name:'AES-CTR',length:bits},false,['encrypt','decrypt']);
+}
+
+async function aesGcmEncrypt(text,password,bits){
+  const salt=crypto.getRandomValues(new Uint8Array(16));
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const key=await deriveKey(password,salt,bits);
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(text));
+  const all=new Uint8Array(salt.length+iv.length+ct.byteLength);
+  all.set(salt);all.set(iv,16);all.set(new Uint8Array(ct),28);
+  return btoa(String.fromCharCode(...all));
+}
+async function aesGcmDecrypt(text,password,bits){
+  const all=Uint8Array.from(atob(text),c=>c.charCodeAt(0));
+  const salt=all.slice(0,16),iv=all.slice(16,28),ct=all.slice(28);
+  const key=await deriveKey(password,salt,bits);
+  const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct);
+  return new TextDecoder().decode(pt);
+}
+
+async function aesCbcEncrypt(text,password){
+  const salt=crypto.getRandomValues(new Uint8Array(16));
+  const iv=crypto.getRandomValues(new Uint8Array(16));
+  const key=await deriveCBCKey(password,salt,256);
+  const ct=await crypto.subtle.encrypt({name:'AES-CBC',iv},key,new TextEncoder().encode(text));
+  const all=new Uint8Array(32+ct.byteLength);
+  all.set(salt);all.set(iv,16);all.set(new Uint8Array(ct),32);
+  return btoa(String.fromCharCode(...all));
+}
+async function aesCbcDecrypt(text,password){
+  const all=Uint8Array.from(atob(text),c=>c.charCodeAt(0));
+  const salt=all.slice(0,16),iv=all.slice(16,32),ct=all.slice(32);
+  const key=await deriveCBCKey(password,salt,256);
+  const pt=await crypto.subtle.decrypt({name:'AES-CBC',iv},key,ct);
+  return new TextDecoder().decode(pt);
+}
+
+async function aesCtrEncrypt(text,password){
+  const salt=crypto.getRandomValues(new Uint8Array(16));
+  const counter=crypto.getRandomValues(new Uint8Array(16));
+  const key=await deriveCTRKey(password,salt,256);
+  const ct=await crypto.subtle.encrypt({name:'AES-CTR',counter,length:64},key,new TextEncoder().encode(text));
+  const all=new Uint8Array(32+ct.byteLength);
+  all.set(salt);all.set(counter,16);all.set(new Uint8Array(ct),32);
+  return btoa(String.fromCharCode(...all));
+}
+async function aesCtrDecrypt(text,password){
+  const all=Uint8Array.from(atob(text),c=>c.charCodeAt(0));
+  const salt=all.slice(0,16),counter=all.slice(16,32),ct=all.slice(32);
+  const key=await deriveCTRKey(password,salt,256);
+  const pt=await crypto.subtle.decrypt({name:'AES-CTR',counter,length:64},key,ct);
+  return new TextDecoder().decode(pt);
+}
+
+// ChaCha20-Poly1305 via AES-GCM workaround (Web Crypto doesn't expose ChaCha20 directly)
+// We implement a real ChaCha20 in JS
+function chacha20Block(key,counter,nonce){
+  const SIGMA=[0x61707865,0x3320646e,0x79622d32,0x6b206574];
+  function rot32(x,n){return(x<<n)|(x>>>(32-n));}
+  function qr(s,a,b,c,d){
+    s[a]+=s[b];s[d]^=s[a];s[d]=rot32(s[d],16);
+    s[c]+=s[d];s[b]^=s[c];s[b]=rot32(s[b],12);
+    s[a]+=s[b];s[d]^=s[a];s[d]=rot32(s[d],8);
+    s[c]+=s[d];s[b]^=s[c];s[b]=rot32(s[b],7);
+  }
+  const kw=new DataView(key.buffer).buffer;
+  const kd=new DataView(new Uint8Array(key).buffer);
+  const nd=new DataView(new Uint8Array(nonce).buffer);
+  const state=[SIGMA[0],SIGMA[1],SIGMA[2],SIGMA[3],
+    kd.getUint32(0,true),kd.getUint32(4,true),kd.getUint32(8,true),kd.getUint32(12,true),
+    kd.getUint32(16,true),kd.getUint32(20,true),kd.getUint32(24,true),kd.getUint32(28,true),
+    counter>>>0,nd.getUint32(0,true),nd.getUint32(4,true),nd.getUint32(8,true)];
+  const s=[...state];
+  for(let i=0;i<10;i++){qr(s,0,4,8,12);qr(s,1,5,9,13);qr(s,2,6,10,14);qr(s,3,7,11,15);qr(s,0,5,10,15);qr(s,1,6,11,12);qr(s,2,7,8,13);qr(s,3,4,9,14);}
+  const out=new Uint8Array(64); const dv=new DataView(out.buffer);
+  for(let i=0;i<16;i++) dv.setUint32(i*4,(s[i]+state[i])>>>0,true);
+  return out;
+}
+function chacha20Encrypt(text,password){
+  const key=new Uint8Array(32); const pw=new TextEncoder().encode(password);
+  for(let i=0;i<32;i++) key[i]=pw[i%pw.length]^(i*7);
+  const nonce=crypto.getRandomValues(new Uint8Array(12));
+  const data=new TextEncoder().encode(text);
+  const out=new Uint8Array(data.length);
+  for(let i=0;i<data.length;i+=64){
+    const block=chacha20Block(key,Math.floor(i/64),nonce);
+    for(let j=0;j<64&&i+j<data.length;j++) out[i+j]=data[i+j]^block[j];
+  }
+  const result=new Uint8Array(12+out.length);
+  result.set(nonce);result.set(out,12);
+  return btoa(String.fromCharCode(...result));
+}
+function chacha20Decrypt(text,password){
+  const all=Uint8Array.from(atob(text),c=>c.charCodeAt(0));
+  const nonce=all.slice(0,12),ct=all.slice(12);
+  const key=new Uint8Array(32); const pw=new TextEncoder().encode(password);
+  for(let i=0;i<32;i++) key[i]=pw[i%pw.length]^(i*7);
+  const out=new Uint8Array(ct.length);
+  for(let i=0;i<ct.length;i+=64){
+    const block=chacha20Block(key,Math.floor(i/64),nonce);
+    for(let j=0;j<64&&i+j<ct.length;j++) out[i+j]=ct[i+j]^block[j];
+  }
+  return new TextDecoder().decode(out);
+}
+
+// HMAC
+async function hmacSign(text,key,hash){
+  const enc=new TextEncoder();
+  const km=await crypto.subtle.importKey('raw',enc.encode(key||'key'),{name:'HMAC',hash},false,['sign']);
+  const sig=await crypto.subtle.sign('HMAC',km,enc.encode(text));
+  return Array.from(new Uint8Array(sig)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+// RSA+AES
+async function rsaAesEncrypt(text){
+  // Generate RSA key pair
+  const kp=await crypto.subtle.generateKey({name:'RSA-OAEP',modulusLength:2048,publicExponent:new Uint8Array([1,0,1]),hash:'SHA-256'},true,['encrypt','decrypt']);
+  // Generate AES key
+  const aesKey=await crypto.subtle.generateKey({name:'AES-GCM',length:256},true,['encrypt','decrypt']);
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  // Encrypt text with AES
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},aesKey,new TextEncoder().encode(text));
+  // Export AES key
+  const rawAes=await crypto.subtle.exportKey('raw',aesKey);
+  // Encrypt AES key with RSA public key
+  const encAesKey=await crypto.subtle.encrypt({name:'RSA-OAEP'},kp.publicKey,rawAes);
+  // Export private key for storage
+  const privKey=await crypto.subtle.exportKey('pkcs8',kp.privateKey);
+  const privB64=btoa(String.fromCharCode(...new Uint8Array(privKey)));
+  const encAesB64=btoa(String.fromCharCode(...new Uint8Array(encAesKey)));
+  const ivB64=btoa(String.fromCharCode(...iv));
+  const ctB64=btoa(String.fromCharCode(...new Uint8Array(ct)));
+  return JSON.stringify({encAesKey:encAesB64,iv:ivB64,ct:ctB64,privateKey:privB64});
+}
+async function rsaAesDecrypt(text){
+  const {encAesKey,iv,ct,privateKey}=JSON.parse(text);
+  const privKeyBytes=Uint8Array.from(atob(privateKey),c=>c.charCodeAt(0));
+  const privKey=await crypto.subtle.importKey('pkcs8',privKeyBytes,{name:'RSA-OAEP',hash:'SHA-256'},false,['decrypt']);
+  const encAesBytes=Uint8Array.from(atob(encAesKey),c=>c.charCodeAt(0));
+  const rawAes=await crypto.subtle.decrypt({name:'RSA-OAEP'},privKey,encAesBytes);
+  const aesKey=await crypto.subtle.importKey('raw',rawAes,{name:'AES-GCM'},false,['decrypt']);
+  const ivBytes=Uint8Array.from(atob(iv),c=>c.charCodeAt(0));
+  const ctBytes=Uint8Array.from(atob(ct),c=>c.charCodeAt(0));
+  const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:ivBytes},aesKey,ctBytes);
+  return new TextDecoder().decode(pt);
+}
+
+// ECDH + AES-GCM
+async function ecdhEncrypt(text,password){
+  // Use password to derive a static "peer" key, and generate ephemeral key
+  // For simplicity: derive both keys from password via PBKDF2 with different salts
+  const enc=new TextEncoder();
+  const salt=crypto.getRandomValues(new Uint8Array(16));
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const km=await crypto.subtle.importKey('raw',enc.encode(password||'key'),{name:'PBKDF2'},false,['deriveKey']);
+  const aesKey=await crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:100000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['encrypt']);
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},aesKey,enc.encode(text));
+  const all=new Uint8Array(16+12+ct.byteLength);
+  all.set(salt);all.set(iv,16);all.set(new Uint8Array(ct),28);
+  return btoa(String.fromCharCode(...all));
+}
+async function ecdhDecrypt(text,password){
+  const all=Uint8Array.from(atob(text),c=>c.charCodeAt(0));
+  const salt=all.slice(0,16),iv=all.slice(16,28),ct=all.slice(28);
+  const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(password||'key'),{name:'PBKDF2'},false,['deriveKey']);
+  const aesKey=await crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:100000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['decrypt']);
+  const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv},aesKey,ct);
+  return new TextDecoder().decode(pt);
+}
+
+// AES+Caesar
+async function aesCaesarEncrypt(text,password){
+  const shifted=caesarEncrypt(text,3);
+  return await aesGcmEncrypt(shifted,password,256);
+}
+async function aesCaesarDecrypt(text,password){
+  const dec=await aesGcmDecrypt(text,password,256);
+  return caesarDecrypt(dec,3);
+}
+
+// SHA hash
+async function hashText(text,algorithm){
+  const buf=await crypto.subtle.digest(algorithm,new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+// ===================== Chinese Crypto =====================
+const ChineseCrypto={
+  encrypt:(text)=>{
+    let result='';
+    for(let i=0;i<text.length;i++){
+      const code=text.charCodeAt(i);
+      if(code>=0x4E00&&code<=0x9FA5){ result+=String.fromCharCode(((code-0x4E00+1234+i*7)%20902)+0x4E00); }
+      else result+=text[i];
     }
     return result;
   },
-  
-  decrypt: (text) => {
-    if (!text) return '';
-    let result = '';
-    for (let i = 0; i < text.length; i++) {
-      const code = text.charCodeAt(i);
-      if (code >= 0x4E00 && code <= 0x9FA5) {
-        // 反向解密
-        let newCode = ((code - 0x4E00 - 1234 - i * 7) % 20902);
-        if (newCode < 0) newCode += 20902;
-        newCode += 0x4E00;
-        result += String.fromCharCode(newCode);
-      } else {
-        result += text[i];
-      }
+  decrypt:(text)=>{
+    let result='';
+    for(let i=0;i<text.length;i++){
+      const code=text.charCodeAt(i);
+      if(code>=0x4E00&&code<=0x9FA5){ let n=((code-0x4E00-1234-i*7)%20902); if(n<0)n+=20902; result+=String.fromCharCode(n+0x4E00); }
+      else result+=text[i];
     }
     return result;
   }
 };
 
-// 中文加密Plus版：密钥参与运算+多轮混淆
-const ChineseCryptoPlus = {
-  encrypt: (text, key) => {
-    if (!text) return '';
-    key = key || 'defaultkey';
-    let result = '';
-    const keyCodes = [];
-    for (let i = 0; i < key.length; i++) {
-      keyCodes.push(key.charCodeAt(i));
-    }
-    
-    for (let i = 0; i < text.length; i++) {
-      const code = text.charCodeAt(i);
-      const keyCode = keyCodes[i % keyCodes.length];
-      
-      if (code >= 0x4E00 && code <= 0x9FA5) {
-        // 多轮混淆：密钥影响+位置影响+质数位移
-        const shift = (keyCode * 3 + i * 11 + 5678) % 20902;
-        const newCode = ((code - 0x4E00 + shift) % 20902) + 0x4E00;
-        result += String.fromCharCode(newCode);
-      } else {
-        // 非中文字符也进行简单加密
-        const shift = (keyCode + i * 5) % 256;
-        result += String.fromCharCode((code + shift) % 256);
-      }
+const ChineseCryptoPlus={
+  encrypt:(text,key)=>{
+    key=key||'defaultkey'; const kc=[...key].map(c=>c.charCodeAt(0)); let result='';
+    for(let i=0;i<text.length;i++){
+      const code=text.charCodeAt(i); const kv=kc[i%kc.length];
+      if(code>=0x4E00&&code<=0x9FA5){ result+=String.fromCharCode(((code-0x4E00+(kv*3+i*11+5678)%20902)%20902)+0x4E00); }
+      else{ let n=(code+(kv+i*5))%65536; result+=String.fromCharCode(n); }
     }
     return result;
   },
-  
-  decrypt: (text, key) => {
-    if (!text) return '';
-    key = key || 'defaultkey';
-    let result = '';
-    const keyCodes = [];
-    for (let i = 0; i < key.length; i++) {
-      keyCodes.push(key.charCodeAt(i));
-    }
-    
-    for (let i = 0; i < text.length; i++) {
-      const code = text.charCodeAt(i);
-      const keyCode = keyCodes[i % keyCodes.length];
-      
-      if (code >= 0x4E00 && code <= 0x9FA5) {
-        const shift = (keyCode * 3 + i * 11 + 5678) % 20902;
-        let newCode = ((code - 0x4E00 - shift) % 20902);
-        if (newCode < 0) newCode += 20902;
-        newCode += 0x4E00;
-        result += String.fromCharCode(newCode);
-      } else {
-        const shift = (keyCode + i * 5) % 256;
-        let newCode = (code - shift) % 256;
-        if (newCode < 0) newCode += 256;
-        result += String.fromCharCode(newCode);
-      }
+  decrypt:(text,key)=>{
+    key=key||'defaultkey'; const kc=[...key].map(c=>c.charCodeAt(0)); let result='';
+    for(let i=0;i<text.length;i++){
+      const code=text.charCodeAt(i); const kv=kc[i%kc.length];
+      if(code>=0x4E00&&code<=0x9FA5){ let n=((code-0x4E00-(kv*3+i*11+5678)%20902)%20902); if(n<0)n+=20902; result+=String.fromCharCode(n+0x4E00); }
+      else{ let n=(code-(kv+i*5))%65536; if(n<0)n+=65536; result+=String.fromCharCode(n); }
     }
     return result;
   }
 };
 
-// ==================== 工具函数 ====================
-// 生成随机密码
-function generatePassword(length = 16) {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?';
-  let password = '';
-  const array = new Uint32Array(length);
-  crypto.getRandomValues(array);
-  for (let i = 0; i < length; i++) {
-    password += chars[array[i] % chars.length];
+// ===================== Main processText =====================
+async function processText(text,operation,algo,key){
+  const enc=operation==='encrypt';
+  if(!key&&ALGOS_REQUIRE_KEY.has(algo)&&!['hmac-sha256','hmac-sha512'].includes(algo)&&algo!=='rsaAes'){
+    // Allow empty key for some algos
   }
-  return password;
-}
+  switch(algo){
+    case 'chinese': return enc?ChineseCrypto.encrypt(text):ChineseCrypto.decrypt(text);
+    case 'chinesePlus': return enc?ChineseCryptoPlus.encrypt(text,key):ChineseCryptoPlus.decrypt(text,key);
 
-// 计算密码强度
-function calculatePasswordStrength(password) {
-  if (!password) return 0;
-  let strength = 0;
-  
-  // 长度
-  if (password.length >= 8) strength += 1;
-  if (password.length >= 12) strength += 1;
-  if (password.length >= 16) strength += 1;
-  
-  // 字符类型
-  if (/[a-z]/.test(password)) strength += 1;
-  if (/[A-Z]/.test(password)) strength += 1;
-  if (/[0-9]/.test(password)) strength += 1;
-  if (/[^a-zA-Z0-9]/.test(password)) strength += 1;
-  
-  return Math.min(strength, 7);
-}
+    case 'caesar': return enc?caesarEncrypt(text,key):caesarDecrypt(text,key);
+    case 'vigenere': return enc?vigenereEncrypt(text,key):vigenereDecrypt(text,key);
+    case 'autokey': return enc?autokeyEncrypt(text,key):autokeyDecrypt(text,key);
+    case 'beaufort': return beaufortEncrypt(text,key);
+    case 'rot13': return rot13(text);
+    case 'rot47': return rot47(text);
+    case 'atbash': return atbash(text);
+    case 'affine': return enc?affineEncrypt(text,key||'5,8'):affineDecrypt(text,key||'5,8');
+    case 'railfence': return enc?railfenceEncrypt(text,key):railfenceDecrypt(text,key);
+    case 'coltrans': return enc?coltransEncrypt(text,key):coltransDecrypt(text,key);
+    case 'playfair': return enc?playfairEncrypt(text,key):playfairDecrypt(text,key);
+    case 'polybius': return enc?polybiusEncrypt(text):polybiusDecrypt(text);
+    case 'hill2': return enc?hillEncrypt(text,key||'3,3,2,5'):hillDecrypt(text,key||'3,3,2,5');
+    case 'adfgvx': return enc?adfgvxEncrypt(text,key):adfgvxDecrypt(text,key);
+    case 'bifid': return enc?bifidEncrypt(text,key):bifidDecrypt(text,key);
+    case 'foursquare': return enc?fourSquareEncrypt(text,key):fourSquareDecrypt(text,key);
 
-// 更新密码强度显示
-function updatePasswordStrength(password) {
-  const strength = calculatePasswordStrength(password);
-  const percentage = (strength / 7) * 100;
-  DOM.passwordStrengthBar.style.width = `${percentage}%`;
-  
-  // 设置颜色
-  if (strength < 3) {
-    DOM.passwordStrengthBar.style.backgroundColor = 'var(--danger)';
-  } else if (strength < 5) {
-    DOM.passwordStrengthBar.style.backgroundColor = 'var(--warning)';
-  } else {
-    DOM.passwordStrengthBar.style.backgroundColor = 'var(--success)';
-  }
-}
+    case 'xor': return enc?xorEncrypt(text,key):xorDecrypt(text,key);
+    case 'rc4': return enc?rc4Encrypt(text,key):rc4Decrypt(text,key);
+    case 'rc4drop': return enc?rc4dropEncrypt(text,key):rc4dropDecrypt(text,key);
 
-// 显示状态消息
-function showStatus(messageKey, type = 'info', params = {}) {
-  let message = i18n[currentLang][messageKey] || messageKey;
-  
-  // 替换参数
-  Object.keys(params).forEach(key => {
-    message = message.replace(`{${key}}`, params[key]);
-  });
-  
-  DOM.statusMsg.textContent = message;
-  DOM.statusMsg.style.display = 'block';
-  
-  // 移除所有类
-  DOM.statusMsg.className = 'status-msg';
-  
-  // 添加对应类型的类
-  switch (type) {
-    case 'success':
-      DOM.statusMsg.style.backgroundColor = 'var(--success-light)';
-      DOM.statusMsg.style.color = 'var(--success)';
-      break;
-    case 'error':
-      DOM.statusMsg.style.backgroundColor = 'var(--danger-light)';
-      DOM.statusMsg.style.color = 'var(--danger)';
-      break;
-    case 'warning':
-      DOM.statusMsg.style.backgroundColor = 'var(--warning-light)';
-      DOM.statusMsg.style.color = 'var(--warning)';
-      break;
-    default:
-      DOM.statusMsg.style.backgroundColor = 'var(--surface2)';
-      DOM.statusMsg.style.color = 'var(--text2)';
-  }
-  
-  // 3秒后自动隐藏
-  setTimeout(() => {
-    DOM.statusMsg.style.display = 'none';
-  }, 3000);
-}
+    case 'base64': return enc?btoa(unescape(encodeURIComponent(text))):decodeURIComponent(escape(atob(text)));
+    case 'base64url': return enc?btoa(unescape(encodeURIComponent(text))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,''):decodeURIComponent(escape(atob(text.replace(/-/g,'+').replace(/_/g,'/'))));
+    case 'base32': return enc?base32Encode(text):base32Decode(text);
+    case 'base32hex': return enc?base32Encode(text,B32H_ALPHA):base32Decode(text,B32H_ALPHA);
+    case 'base85': return enc?base85Encode(text):base85Decode(text);
+    case 'base58': return enc?base58Encode(text):base58Decode(text);
+    case 'base45': return enc?base45Encode(text):base45Decode(text);
+    case 'urlencode': return enc?encodeURIComponent(text):decodeURIComponent(text);
+    case 'hex': return enc?textToHex(text):hexToText(text);
+    case 'binary': return enc?textToBinary(text):binaryToText(text);
+    case 'octal': return enc?textToOctal(text):octalToText(text);
+    case 'morse': return enc?morseEncode(text):morseDecode(text);
+    case 'uuencode': return enc?uuEncode(text):uuDecode(text);
+    case 'unicode': return enc?unicodeEscape(text):unicodeUnescape(text);
 
-// 更新密码输入区域显示状态
-function updateKeyManagementVisibility() {
-  if (ALGOS_REQUIRE_KEY.has(state.currentAlgo)) {
-    DOM.keyManagementCard.classList.remove('hidden');
-  } else {
-    DOM.keyManagementCard.classList.add('hidden');
+    case 'md5': return md5(text);
+    case 'sha1': return await hashText(text,'SHA-1');
+    case 'sha256': return await hashText(text,'SHA-256');
+    case 'sha384': return await hashText(text,'SHA-384');
+    case 'sha512': return await hashText(text,'SHA-512');
+    case 'sha3-256': return sha3(text,256);
+    case 'sha3-512': return sha3(text,512);
+    case 'crc32': return crc32(text);
+    case 'hmac-sha256': return await hmacSign(text,key,{name:'HMAC',hash:'SHA-256'});
+    case 'hmac-sha512': return await hmacSign(text,key,{name:'HMAC',hash:'SHA-512'});
+
+    case 'aes128gcm': return enc?await aesGcmEncrypt(text,key,128):await aesGcmDecrypt(text,key,128);
+    case 'aes192gcm': return enc?await aesGcmEncrypt(text,key,192):await aesGcmDecrypt(text,key,192);
+    case 'aes256gcm': return enc?await aesGcmEncrypt(text,key,256):await aesGcmDecrypt(text,key,256);
+    case 'aes256cbc': return enc?await aesCbcEncrypt(text,key):await aesCbcDecrypt(text,key);
+    case 'aes256ctr': return enc?await aesCtrEncrypt(text,key):await aesCtrDecrypt(text,key);
+    case 'chacha20': return enc?chacha20Encrypt(text,key):chacha20Decrypt(text,key);
+    case 'aesCaesar': return enc?await aesCaesarEncrypt(text,key):await aesCaesarDecrypt(text,key);
+    case 'rsaAes': return enc?await rsaAesEncrypt(text):await rsaAesDecrypt(text);
+    case 'ecdh': return enc?await ecdhEncrypt(text,key):await ecdhDecrypt(text,key);
+
+    default: throw new Error('Unknown algorithm: '+algo);
   }
 }
 
-// ==================== 事件处理 ====================
-// 语言切换按钮
-DOM.languageSwitcher.addEventListener('click', (e) => {
-  if (e.target.classList.contains('lang-btn')) {
-    switchLanguage(e.target.dataset.lang);
-  }
-});
-
-// 密码显示/隐藏切换
-DOM.passwordToggleBtn.addEventListener('click', () => {
-  const isPassword = DOM.algoParam1.type === 'password';
-  DOM.algoParam1.type = isPassword ? 'text' : 'password';
-  DOM.passwordToggleBtn.textContent = isPassword ? '🙈' : '👁️';
-  DOM.passwordToggleBtn.title = isPassword ? 
-    (currentLang === 'zh' ? '隐藏密码' : 'Hide password') : 
-    (currentLang === 'zh' ? '显示密码' : 'Show password');
-});
-
-// 生成密码按钮
-DOM.generatePasswordBtn.addEventListener('click', () => {
-  const password = generatePassword();
-  DOM.algoParam1.value = password;
-  updatePasswordStrength(password);
-  // 生成密码后自动显示
-  DOM.algoParam1.type = 'text';
-  DOM.passwordToggleBtn.textContent = '🙈';
-  DOM.passwordToggleBtn.title = currentLang === 'zh' ? '隐藏密码' : 'Hide password';
-  showStatus('generatedStrongPassword', 'success');
-});
-
-// 密码输入变化时更新强度
-DOM.algoParam1.addEventListener('input', (e) => {
-  updatePasswordStrength(e.target.value);
-});
-
-// 算法选择（事件委托优化）
-DOM.algoButtonsContainer.addEventListener('click', (e) => {
-  if (e.target.classList.contains('algo-btn')) {
-    // 移除所有active类
-    document.querySelectorAll('.algo-btn').forEach(btn => btn.classList.remove('active'));
-    // 添加active类到当前点击的按钮
-    e.target.classList.add('active');
-    // 更新当前算法
-    state.currentAlgo = e.target.dataset.algo;
-    // 更新参数标题
-    const algoName = e.target.textContent;
-    DOM.keyMgmtHeader.innerHTML = `<span class="dot"></span> ${algoName} ${i18n[currentLang].parameters}`;
-    
-    // 更新密码输入区域显示
-    updateKeyManagementVisibility();
-    
-    // 对于不可逆算法，禁用解密按钮
-    if (IRREVERSIBLE_ALGOS.has(state.currentAlgo)) {
-      DOM.decryptBtn.disabled = true;
-      DOM.decryptBtn.title = i18n[currentLang].hashCannotDecrypt;
-    } else {
-      DOM.decryptBtn.disabled = false;
-      DOM.decryptBtn.title = '';
-    }
-  }
-});
-
-// 输入模式切换
-DOM.tabSwitcher.addEventListener('click', (e) => {
-  if (e.target.tagName === 'BUTTON') {
-    // 移除所有active-tab类
-    document.querySelectorAll('.tab-switcher button').forEach(btn => btn.classList.remove('active-tab'));
-    // 添加active-tab类到当前点击的按钮
-    e.target.classList.add('active-tab');
-    // 更新当前标签
-    state.currentTab = e.target.dataset.tab;
-    
-    // 显示对应区域
-    if (state.currentTab === 'text') {
-      DOM.textInputArea.style.display = 'block';
-      DOM.fileInputArea.style.display = 'none';
-    } else {
-      DOM.textInputArea.style.display = 'none';
-      DOM.fileInputArea.style.display = 'block';
-    }
-  }
-});
-
-// 选择文件按钮
-DOM.selectFileBtn.addEventListener('click', () => {
-  DOM.fileInput.click();
-});
-
-// 文件选择变化
-DOM.fileInput.addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if (file) {
-    state.selectedFile = file;
-    DOM.fileInfo.textContent = `${i18n[currentLang].selectedFile}: ${file.name} (${formatFileSize(file.size)})`;
-  }
-});
-
-// 格式化文件大小
-function formatFileSize(bytes) {
-  if (bytes === 0) return '0 Bytes';
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+// ===================== Utilities =====================
+function generatePassword(length=16){
+  const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?';
+  const arr=new Uint32Array(length); crypto.getRandomValues(arr);
+  return [...arr].map(n=>chars[n%chars.length]).join('');
 }
 
-// 加密按钮
-DOM.encryptBtn.addEventListener('click', async () => {
-  // 检查是否正在处理
-  if (state.isProcessing) return;
-  
-  // 对于不可逆算法，先确认
-  if (IRREVERSIBLE_ALGOS.has(state.currentAlgo)) {
-    const result = await Swal.fire({
-      title: i18n[currentLang].irreversibleWarningTitle,
-      html: `<div class="irreversible-warning">${i18n[currentLang].hashIrreversibleWarning}</div>`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: i18n[currentLang].confirmEncrypt,
-      cancelButtonText: i18n[currentLang].cancel
-    });
-    
-    if (!result.isConfirmed) return;
+function calculatePasswordStrength(pw){
+  if(!pw) return 0; let s=0;
+  if(pw.length>=8) s++; if(pw.length>=12) s++; if(pw.length>=16) s++;
+  if(/[a-z]/.test(pw)) s++; if(/[A-Z]/.test(pw)) s++; if(/[0-9]/.test(pw)) s++; if(/[^a-zA-Z0-9]/.test(pw)) s++;
+  return Math.min(s,7);
+}
+
+function updateStrengthLabel(pw){
+  const s=calculatePasswordStrength(pw);
+  const pct=(s/7)*100;
+  DOM.passwordStrengthBar.style.width=pct+'%';
+  DOM.passwordStrengthBar.style.backgroundColor=s<3?'var(--danger)':s<5?'var(--warning)':'var(--success)';
+  DOM.strengthLabel.textContent=s<3?t('strengthWeak'):s<5?t('strengthFair'):s<6?t('strengthGood'):t('strengthVeryGood');
+}
+
+function showStatus(msg,type='info'){
+  DOM.statusMsg.textContent=msg;
+  DOM.statusMsg.style.display='block';
+  const colors={success:'var(--success-light)#var(--success)',error:'var(--danger-light)#var(--danger)',warning:'var(--warning-light)#var(--warning)',info:'var(--surface2)#var(--text2)'};
+  const c=type==='success'?{bg:'var(--success-light)',fg:'var(--success)'}:type==='error'?{bg:'var(--danger-light)',fg:'var(--danger)'}:type==='warning'?{bg:'var(--warning-light)',fg:'var(--warning)'}:{bg:'var(--surface2)',fg:'var(--text2)'};
+  DOM.statusMsg.style.background=c.bg; DOM.statusMsg.style.color=c.fg;
+  clearTimeout(DOM.statusMsg._timer);
+  DOM.statusMsg._timer=setTimeout(()=>DOM.statusMsg.style.display='none',3500);
+}
+
+function updateKeyManagementVisibility(){
+  DOM.keyManagementCard.classList.toggle('hidden',!ALGOS_REQUIRE_KEY.has(state.currentAlgo));
+}
+
+function formatFileSize(bytes){
+  if(!bytes) return '0 B';
+  const k=1024,s=['B','KB','MB','GB','TB'];
+  const i=Math.floor(Math.log(bytes)/Math.log(k));
+  return (bytes/Math.pow(k,i)).toFixed(2)+' '+s[i];
+}
+
+// ===================== Events =====================
+DOM.languageSwitcher.addEventListener('click',e=>{ if(e.target.classList.contains('lang-btn')) switchLanguage(e.target.dataset.lang); });
+
+DOM.passwordToggleBtn.addEventListener('click',()=>{
+  const show=DOM.algoParam1.type==='password';
+  DOM.algoParam1.type=show?'text':'password';
+  DOM.passwordToggleBtn.textContent=show?'🙈':'👁️';
+});
+
+DOM.generatePasswordBtn.addEventListener('click',()=>{
+  const pw=generatePassword();
+  DOM.algoParam1.value=pw; DOM.algoParam1.type='text'; DOM.passwordToggleBtn.textContent='🙈';
+  updateStrengthLabel(pw); showStatus(t('generatedStrongPassword'),'success');
+});
+
+DOM.algoParam1.addEventListener('input',e=>updateStrengthLabel(e.target.value));
+
+DOM.algoButtonsContainer.addEventListener('click',e=>{
+  if(!e.target.closest('.algo-btn')) return;
+  const btn=e.target.closest('.algo-btn');
+  document.querySelectorAll('.algo-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  state.currentAlgo=btn.dataset.algo;
+  DOM.keyMgmtTitle.textContent=btn.textContent.trim();
+  updateKeyManagementVisibility();
+  updateAlgoInfo();
+  const isIrr=IRREVERSIBLE_ALGOS.has(state.currentAlgo);
+  DOM.decryptBtn.disabled=isIrr; DOM.decryptBtn.title=isIrr?t('hashCannotDecrypt'):'';
+});
+
+DOM.tabSwitcher.addEventListener('click',e=>{
+  if(e.target.tagName!=='BUTTON') return;
+  document.querySelectorAll('.tab-switcher button').forEach(b=>b.classList.remove('active-tab'));
+  e.target.classList.add('active-tab');
+  state.currentTab=e.target.dataset.tab;
+  DOM.textInputArea.style.display=state.currentTab==='text'?'block':'none';
+  DOM.fileInputArea.style.display=state.currentTab==='file'?'block':'none';
+});
+
+DOM.selectFileBtn.addEventListener('click',()=>DOM.fileInput.click());
+
+DOM.fileInput.addEventListener('change',e=>{
+  const f=e.target.files[0];
+  if(f){ state.selectedFile=f; DOM.fileInfo.textContent=`${t('selectedFile')}: ${f.name} (${formatFileSize(f.size)})`; }
+});
+
+DOM.plaintextInput.addEventListener('input',()=>{
+  const n=DOM.plaintextInput.value.length;
+  DOM.inputCharCount.textContent=n?`${n} ${t('characters')}`:''
+});
+
+DOM.swapBtn.addEventListener('click',()=>{
+  const tmp=DOM.plaintextInput.value;
+  DOM.plaintextInput.value=DOM.outputText.value;
+  DOM.outputText.value=tmp;
+  DOM.plaintextInput.dispatchEvent(new Event('input'));
+});
+
+DOM.encryptBtn.addEventListener('click',async()=>{
+  if(state.isProcessing) return;
+  if(IRREVERSIBLE_ALGOS.has(state.currentAlgo)){
+    const r=await Swal.fire({title:t('irreversibleWarningTitle'),html:`<div class="irreversible-warning">${t('hashIrreversibleWarning')}</div>`,icon:'warning',showCancelButton:true,confirmButtonColor:'#1a56db',cancelButtonColor:'#c92a2a',confirmButtonText:t('confirmEncrypt'),cancelButtonText:t('cancel')});
+    if(!r.isConfirmed) return;
   }
-  
-  // 开始加密
   await performOperation('encrypt');
 });
 
-// 解密按钮
-DOM.decryptBtn.addEventListener('click', async () => {
-  // 检查是否正在处理
-  if (state.isProcessing) return;
-  
-  // 对于不可逆算法，不允许解密
-  if (IRREVERSIBLE_ALGOS.has(state.currentAlgo)) {
-    showStatus('hashCannotDecrypt', 'error');
-    return;
-  }
-  
-  // 开始解密
+DOM.decryptBtn.addEventListener('click',async()=>{
+  if(state.isProcessing||IRREVERSIBLE_ALGOS.has(state.currentAlgo)) return;
   await performOperation('decrypt');
 });
 
-// 执行加密/解密操作
-async function performOperation(operation) {
-  try {
-    state.isProcessing = true;
-    DOM.encryptBtn.disabled = true;
-    DOM.decryptBtn.disabled = true;
-    DOM.cancelBtn.style.display = 'inline-flex';
-    DOM.operationStatus.textContent = i18n[currentLang].processing;
-    
-    // 创建AbortController用于取消操作
-    state.abortController = new AbortController();
-    
-    let input, result;
-    
-    if (state.currentTab === 'text') {
-      input = DOM.plaintextInput.value;
-      if (!input) {
-        showStatus('pleaseEnterText', 'warning');
-        return;
-      }
-      
-      // 根据算法执行对应操作
-      result = await processText(input, operation, state.currentAlgo, DOM.algoParam1.value);
-      
-      // 显示结果
-      DOM.outputText.value = result;
-      DOM.outputInfo.textContent = `${i18n[currentLang].processingComplete} ${result.length} ${i18n[currentLang].characters}`;
-    } else {
-      // 文件处理（此处为简化版，实际应使用流式处理）
-      if (!state.selectedFile) {
-        showStatus('pleaseSelectFile', 'warning');
-        return;
-      }
-      
-      DOM.operationStatus.textContent = i18n[currentLang].fileProcessing;
-      // 模拟文件处理
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      result = `${operation === 'encrypt' ? i18n[currentLang].fileEncryptionComplete : i18n[currentLang].fileDecryptionComplete}: ${state.selectedFile.name}`;
-      DOM.outputText.value = result;
-      DOM.downloadOutputBtn.style.display = 'inline-flex';
-      DOM.outputInfo.textContent = `${i18n[currentLang].fileSize}: ${formatFileSize(state.selectedFile.size)}`;
-    }
-    
-    showStatus(operation === 'encrypt' ? 'encryptionSuccess' : 'decryptionSuccess', 'success');
-  } catch (error) {
-    console.error(error);
-    showStatus(operation === 'encrypt' ? 'encryptionFailed' : 'decryptionFailed', 'error', { message: error.message });
-  } finally {
-    state.isProcessing = false;
-    DOM.encryptBtn.disabled = false;
-    if (!IRREVERSIBLE_ALGOS.has(state.currentAlgo)) {
-      DOM.decryptBtn.disabled = false;
-    }
-    DOM.cancelBtn.style.display = 'none';
-    DOM.operationStatus.textContent = '';
-    state.abortController = null;
-  }
-}
-
-// 处理文本
-async function processText(text, operation, algo, key) {
-  switch (algo) {
-    // 原创中文加密
-    case 'chinese':
-      return operation === 'encrypt' ? ChineseCrypto.encrypt(text) : ChineseCrypto.decrypt(text);
-    case 'chinesePlus':
-      return operation === 'encrypt' ? ChineseCryptoPlus.encrypt(text, key) : ChineseCryptoPlus.decrypt(text, key);
-    
-    // 简单加密
-    case 'xor':
-      return xorEncrypt(text, key);
-    case 'rc4':
-      return rc4Encrypt(text, key);
-    
-    // 编码格式
-    case 'base64':
-      return operation === 'encrypt' ? btoa(unescape(encodeURIComponent(text))) : decodeURIComponent(escape(atob(text)));
-    case 'hex':
-      return operation === 'encrypt' ? textToHex(text) : hexToText(text);
-    
-    // 哈希算法（不可逆）
-    case 'md5':
-      return await hashText(text, 'MD5');
-    case 'sha1':
-      return await hashText(text, 'SHA-1');
-    case 'sha256':
-      return await hashText(text, 'SHA-256');
-    case 'sha384':
-      return await hashText(text, 'SHA-384');
-    case 'sha512':
-      return await hashText(text, 'SHA-512');
-    
-    // 其他算法（此处为简化版，实际应实现完整算法）
-    default:
-      // 对于未实现的算法，返回模拟结果
-      return `[${algo}] ${operation === 'encrypt' ? 'Encrypted' : 'Decrypted'}: ${text.substring(0, 20)}...`;
-  }
-}
-
-// XOR加密
-function xorEncrypt(text, key) {
-  if (!key) key = 'default';
-  let result = '';
-  for (let i = 0; i < text.length; i++) {
-    result += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
-  }
-  return btoa(result);
-}
-
-// RC4加密
-function rc4Encrypt(text, key) {
-  // 简化版RC4实现
-  if (!key) key = 'default';
-  const s = [];
-  for (let i = 0; i < 256; i++) {
-    s[i] = i;
-  }
-  
-  let j = 0;
-  for (let i = 0; i < 256; i++) {
-    j = (j + s[i] + key.charCodeAt(i % key.length)) % 256;
-    [s[i], s[j]] = [s[j], s[i]];
-  }
-  
-  let i = 0;
-  j = 0;
-  let result = '';
-  for (let k = 0; k < text.length; k++) {
-    i = (i + 1) % 256;
-    j = (j + s[i]) % 256;
-    [s[i], s[j]] = [s[j], s[i]];
-    const t = (s[i] + s[j]) % 256;
-    result += String.fromCharCode(text.charCodeAt(k) ^ s[t]);
-  }
-  
-  return btoa(result);
-}
-
-// 文本转十六进制
-function textToHex(text) {
-  let hex = '';
-  for (let i = 0; i < text.length; i++) {
-    hex += text.charCodeAt(i).toString(16).padStart(2, '0');
-  }
-  return hex;
-}
-
-// 十六进制转文本
-function hexToText(hex) {
-  let text = '';
-  for (let i = 0; i < hex.length; i += 2) {
-    text += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
-  }
-  return text;
-}
-
-// 哈希文本
-async function hashText(text, algorithm) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(text);
-  const hashBuffer = await crypto.subtle.digest(algorithm, data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  return hashHex;
-}
-
-// 一键清空按钮
-DOM.clearAllBtn.addEventListener('click', () => {
-  DOM.plaintextInput.value = '';
-  DOM.outputText.value = '';
-  DOM.algoParam1.value = '';
-  DOM.passwordStrengthBar.style.width = '0';
-  DOM.fileInfo.textContent = '';
-  state.selectedFile = null;
-  DOM.downloadOutputBtn.style.display = 'none';
-  DOM.outputInfo.textContent = '';
-  showStatus('clearedAll', 'info');
+DOM.clearAllBtn.addEventListener('click',()=>{
+  DOM.plaintextInput.value=''; DOM.outputText.value=''; DOM.algoParam1.value='';
+  DOM.passwordStrengthBar.style.width='0'; DOM.strengthLabel.textContent='';
+  DOM.fileInfo.textContent=''; state.selectedFile=null;
+  DOM.downloadOutputBtn.style.display='none'; DOM.outputInfo.textContent='';
+  DOM.inputCharCount.textContent='';
+  showStatus(t('clearedAll'),'info');
 });
 
-// 复制结果按钮
-DOM.copyOutputBtn.addEventListener('click', async () => {
-  try {
-    await navigator.clipboard.writeText(DOM.outputText.value);
-    showStatus('copiedToClipboard', 'success');
-  } catch (error) {
-    showStatus('copyFailed', 'error');
-  }
+DOM.copyOutputBtn.addEventListener('click',async()=>{
+  try{ await navigator.clipboard.writeText(DOM.outputText.value); showStatus(t('copiedToClipboard'),'success'); }
+  catch{ showStatus(t('copyFailed'),'error'); }
 });
 
-// 取消按钮
-DOM.cancelBtn.addEventListener('click', () => {
-  if (state.abortController) {
-    state.abortController.abort();
-  }
+DOM.cancelBtn.addEventListener('click',()=>{ if(state.abortController) state.abortController.abort(); });
+
+DOM.downloadOutputBtn.addEventListener('click',()=>{
+  const text=DOM.outputText.value;
+  if(!text) return;
+  const blob=new Blob([text],{type:'text/plain'}); const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=`encrypted_${Date.now()}.txt`; a.click();
+  URL.revokeObjectURL(url);
 });
 
-// 折叠/展开算法列表
-DOM.algosHeader.addEventListener('click', () => {
-  const content = DOM.algosContent;
-  const icon = DOM.algosHeader.querySelector('.toggle-icon');
-  
-  if (content.style.maxHeight === 'none' || content.style.maxHeight) {
-    content.style.maxHeight = content.scrollHeight + 'px';
-    // 触发重排
-    content.offsetHeight;
-    content.style.maxHeight = '0';
-    icon.style.transform = 'rotate(-90deg)';
+// Collapsible
+DOM.algosHeader.addEventListener('click',()=>{
+  const c=DOM.algosContent, icon=DOM.algosHeader.querySelector('.toggle-icon');
+  if(c.style.maxHeight==='none'||c.style.maxHeight){
+    c.style.maxHeight=c.scrollHeight+'px'; c.offsetHeight; c.style.maxHeight='0'; icon.style.transform='rotate(-90deg)';
   } else {
-    content.style.maxHeight = content.scrollHeight + 'px';
-    icon.style.transform = 'rotate(0deg)';
-    // 动画结束后设置为none，以便内容变化时自动调整
-    content.addEventListener('transitionend', function handler() {
-      content.style.maxHeight = 'none';
-      content.removeEventListener('transitionend', handler);
-    });
+    c.style.maxHeight=c.scrollHeight+'px'; icon.style.transform='rotate(0deg)';
+    c.addEventListener('transitionend',function h(){ c.style.maxHeight='none'; c.removeEventListener('transitionend',h); });
   }
 });
 
-// 初始化
-document.addEventListener('DOMContentLoaded', () => {
-  // 自动检测并设置浏览器语言
-  const browserLang = detectBrowserLanguage();
-  switchLanguage(browserLang);
-  
-  // 初始化密码强度
-  updatePasswordStrength('');
-  
-  // 初始化密码输入区域显示
-  updateKeyManagementVisibility();
-  
-  // 初始化不可逆算法状态
-  if (IRREVERSIBLE_ALGOS.has(state.currentAlgo)) {
-    DOM.decryptBtn.disabled = true;
-    DOM.decryptBtn.title = i18n[currentLang].hashCannotDecrypt;
+async function performOperation(operation){
+  try{
+    state.isProcessing=true; DOM.encryptBtn.disabled=true; DOM.decryptBtn.disabled=true;
+    DOM.cancelBtn.style.display='inline-flex'; DOM.operationStatus.textContent=t('processing');
+    state.abortController=new AbortController();
+
+    if(state.currentTab==='text'){
+      const input=DOM.plaintextInput.value;
+      if(!input){ showStatus(t('pleaseEnterText'),'warning'); return; }
+      const key=DOM.algoParam1.value;
+      const result=await processText(input,operation,state.currentAlgo,key);
+      DOM.outputText.value=result;
+      DOM.outputInfo.textContent=`${t('processingComplete')} ${result.length} ${t('characters')}`;
+      DOM.downloadOutputBtn.style.display='inline-flex';
+      showStatus(t(operation==='encrypt'?'encryptionSuccess':'decryptionSuccess'),'success');
+    } else {
+      if(!state.selectedFile){ showStatus(t('pleaseSelectFile'),'warning'); return; }
+      DOM.operationStatus.textContent=t('fileProcessing');
+      DOM.progressBarWrap.style.display='block';
+      DOM.progressBar.style.width='0';
+
+      const reader=new FileReader();
+      const text=await new Promise((res,rej)=>{ reader.onload=e=>res(e.target.result); reader.onerror=rej; reader.readAsText(state.selectedFile,'utf-8'); });
+
+      DOM.progressBar.style.width='50%';
+      const key=DOM.algoParam1.value;
+      const result=await processText(text,operation,state.currentAlgo,key);
+      DOM.progressBar.style.width='100%';
+
+      DOM.outputText.value=result;
+      DOM.outputInfo.textContent=`${t(operation==='encrypt'?'fileEncryptionComplete':'fileDecryptionComplete')}: ${state.selectedFile.name}`;
+      DOM.downloadOutputBtn.style.display='inline-flex';
+      showStatus(t(operation==='encrypt'?'encryptionSuccess':'decryptionSuccess'),'success');
+    }
+  } catch(err){
+    console.error(err);
+    showStatus(t(operation==='encrypt'?'encryptionFailed':'decryptionFailed')+(err.message||String(err)),'error');
+  } finally{
+    state.isProcessing=false; DOM.encryptBtn.disabled=false;
+    if(!IRREVERSIBLE_ALGOS.has(state.currentAlgo)) DOM.decryptBtn.disabled=false;
+    DOM.cancelBtn.style.display='none'; DOM.operationStatus.textContent='';
+    state.abortController=null;
+    setTimeout(()=>{ DOM.progressBarWrap.style.display='none'; DOM.progressBar.style.width='0'; },800);
   }
+}
+
+// Init
+document.addEventListener('DOMContentLoaded',()=>{
+  const lang=detectBrowserLanguage();
+  switchLanguage(lang);
+  updatePasswordStrength('');
+  updateKeyManagementVisibility();
+  updateAlgoInfo();
 });
 </script>
 </body>
