@@ -4,6 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <title>全算法加密工具</title>
+<!-- 引入最新的CSS3和图标库 -->
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdn.jsdelivr.net/npm/font-awesome@6.5.1/css/all.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.0/dist/sweetalert2.all.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.0/dist/sweetalert2.min.css" rel="stylesheet">
 <style>
 :root{
   --bg:#f8f9fa;--surface:#ffffff;--surface2:#f1f3f5;--text:#1a1a2e;--text2:#495057;--text3:#6c757d;
@@ -14,7 +19,7 @@
   --shadow:0 4px 12px rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.04);
   --radius:8px;--radius-sm:6px;
   --font-mono:"SF Mono","Cascadia Code","Consolas","Monaco","Courier New",monospace;
-  --transition:0.2s ease
+  --transition:0.2s cubic-bezier(0.4, 0, 0.2, 1)
 }
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;-webkit-font-smoothing:antialiased}
@@ -27,7 +32,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Micr
 .lang-btn{padding:4px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);cursor:pointer;font-size:0.75rem;color:var(--text3);transition:all var(--transition)}
 .lang-btn:hover,.lang-btn.active{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
 .lang-btn.active{font-weight:600}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:16px;box-shadow:var(--shadow-sm)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:16px;box-shadow:var(--shadow-sm);transition:box-shadow var(--transition)}
+.card:hover{box-shadow:var(--shadow)}
 .card-header{font-weight:600;font-size:0.95rem;margin-bottom:16px;display:flex;align-items:center;gap:8px;color:var(--text);cursor:pointer;user-select:none}
 .card-header .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;flex-shrink:0}
 .card-header .toggle-icon{margin-left:auto;transition:transform var(--transition)}
@@ -35,12 +41,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Micr
 .category-section{margin-bottom:14px}
 .category-title{font-size:0.78rem;color:var(--text3);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em}
 .algo-btn{padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);cursor:pointer;text-align:center;transition:all var(--transition);font-family:inherit;font-size:0.8rem;color:var(--text2);white-space:nowrap;position:relative}
-.algo-btn:hover{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
+.algo-btn:hover{border-color:var(--accent);background:var(--accent-light);color:var(--accent);transform:translateY(-1px)}
 .algo-btn.active{border-color:var(--accent);background:var(--accent-light);color:var(--accent);font-weight:600;box-shadow:0 0 0 2px rgba(26,86,219,.15)}
 .algo-btn .badge{position:absolute;top:-5px;right:-5px;font-size:0.6rem;padding:1px 4px;border-radius:3px;font-weight:700;line-height:1.4}
 .badge-new{background:#dc3545;color:#fff}
 .badge-hash{background:var(--warning);color:#fff}
-textarea{width:100%;min-height:120px;padding:12px 14px;border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:0.9rem;resize:vertical;background:var(--surface2);color:var(--text);transition:border-color var(--transition)}
+textarea{width:100%;min-height:120px;padding:12px 14px;border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:0.9rem;resize:vertical;background:var(--surface2);color:var(--text);transition:all var(--transition)}
 textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,86,219,.08);background:var(--surface)}
 textarea::placeholder{color:#adb5bd}
 input[type="password"],input[type="text"]{width:100%;padding:10px 14px;border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-family:inherit;font-size:0.9rem;background:var(--surface2);color:var(--text);transition:all var(--transition)}
@@ -48,13 +54,13 @@ input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(26
 label{display:block;font-weight:500;font-size:0.85rem;color:var(--text2);margin-bottom:6px}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 20px;border-radius:var(--radius-sm);font-family:inherit;font-size:0.9rem;font-weight:500;cursor:pointer;border:none;transition:all var(--transition);white-space:nowrap;letter-spacing:0.01em}
 .btn-primary{background:var(--accent);color:#fff}
-.btn-primary:hover{background:var(--accent-hover);box-shadow:var(--shadow)}
+.btn-primary:hover{background:var(--accent-hover);box-shadow:var(--shadow);transform:translateY(-1px)}
 .btn-secondary{background:var(--surface2);color:var(--text2);border:1.5px solid var(--border2)}
-.btn-secondary:hover{background:#e9ecef;border-color:#adb5bd}
+.btn-secondary:hover{background:#e9ecef;border-color:#adb5bd;transform:translateY(-1px)}
 .btn-danger{background:var(--danger-light);color:var(--danger);border:1.5px solid #ffc9c9}
-.btn-danger:hover{background:#ffe3e3;border-color:#ffa8a8}
+.btn-danger:hover{background:#ffe3e3;border-color:#ffa8a8;transform:translateY(-1px)}
 .btn-sm{padding:6px 14px;font-size:0.8rem}
-.btn:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
+.btn:disabled{opacity:.5;cursor:not-allowed;pointer-events:none;transform:none}
 .btn-group{display:flex;gap:10px;flex-wrap:wrap}
 .output-area{position:relative}
 .output-area textarea{background:#fafbfc;border-color:#d0d5dd;color:#1a1a2e;min-height:120px;font-size:0.82rem}
@@ -66,7 +72,7 @@ label{display:block;font-weight:500;font-size:0.85rem;color:var(--text2);margin-
 .tab-switcher button.active-tab{background:var(--accent);color:#fff;font-weight:500}
 .password-strength{height:4px;border-radius:2px;margin-top:6px;background:var(--border2);overflow:hidden}
 .password-strength-bar{height:100%;transition:all var(--transition);width:0}
-.collapsible-content{overflow:hidden;transition:max-height 0.3s ease}
+.collapsible-content{overflow:hidden;transition:max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1)}
 .password-wrap{position:relative;display:flex;align-items:center}
 .password-wrap input{padding-right:130px}
 .password-toggle-btn{position:absolute;right:90px;background:none;border:none;cursor:pointer;font-size:1rem;color:var(--text3);transition:color var(--transition);padding:4px}
@@ -79,6 +85,8 @@ label{display:block;font-weight:500;font-size:0.85rem;color:var(--text2);margin-
 .algo-info-box{background:var(--accent-light);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-size:0.82rem;color:var(--text2);margin-top:12px;line-height:1.6;display:none}
 .swap-btn{background:none;border:1px solid var(--border2);border-radius:4px;padding:4px 10px;cursor:pointer;font-size:0.8rem;color:var(--text3);transition:all var(--transition)}
 .swap-btn:hover{border-color:var(--accent);color:var(--accent)}
+.file-drop-area{border:2px dashed var(--border2);border-radius:var(--radius-sm);padding:20px;text-align:center;transition:all var(--transition);cursor:pointer;margin-top:10px}
+.file-drop-area:hover,.file-drop-area.dragover{border-color:var(--accent);background:var(--accent-light)}
 @media(max-width:600px){.language-switcher{position:static;justify-content:center;margin-bottom:12px}.header{padding:20px 0 16px}.container{padding:16px 12px 32px}}
 </style>
 </head>
@@ -230,8 +238,12 @@ label{display:block;font-weight:500;font-size:0.85rem;color:var(--text2);margin-
       <div style="font-size:0.75rem;color:var(--text3);margin-top:4px" id="inputCharCount"></div>
     </div>
     <div id="fileInputArea" style="display:none">
-      <input type="file" id="fileInput" style="display:none">
-      <button class="btn btn-secondary" id="selectFileBtn" data-i18n="selectFile">📁 选择文件</button>
+      <div class="file-drop-area" id="fileDropArea">
+        <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-2"></i>
+        <p class="text-secondary mb-2" data-i18n="dropFileHere">拖拽文件到此处或点击上传</p>
+        <input type="file" id="fileInput" style="display:none">
+        <button class="btn btn-secondary btn-sm" id="selectFileBtn" data-i18n="selectFile">📁 选择文件</button>
+      </div>
       <div id="fileInfo" style="margin-top:10px;font-size:0.85rem;color:var(--text2)"></div>
     </div>
     <div id="statusMsg" class="status-msg" style="display:none"></div>
@@ -266,7 +278,6 @@ label{display:block;font-weight:500;font-size:0.85rem;color:var(--text2);margin-
     </div>
   </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 // ===================== 国际化 i18n =====================
 const i18n = {
@@ -279,7 +290,8 @@ const i18n = {
     parameters:"参数",password:"密码",enterPassword:"输入密码",generate:"生成",
     inputMode:"📝 输入模式",textInput:"📝 文字输入",fileEncryption:"📁 文件加密",
     inputPlaintext:"输入明文（解密时粘贴密文）",enterTextHere:"在此输入要加密的文字…",
-    selectFile:"📁 选择文件",encrypt:"加密",decrypt:"解密",clearAll:"一键清空",cancel:"取消",
+    selectFile:"📁 选择文件",dropFileHere:"拖拽文件到此处或点击上传",
+    encrypt:"加密",decrypt:"解密",clearAll:"一键清空",cancel:"取消",
     outputResult:"📤 输出结果",resultWillShowHere:"加密或解密结果将显示在这里…",
     copyResult:"复制结果",downloadResult:"下载结果",swapText:"⇄ 互换",
     securityNote:"🛡️ 安全说明：",
@@ -307,7 +319,9 @@ const i18n = {
     affine_info:"Affine密码：仿射密码，密钥为两个整数 a,b（如 5,8），a必须与26互质。",
     railfence_info:"栅栏密码：将文字按Z字形写入多行，密钥为行数（默认2）。",
     coltrans_info:"列换位密码：按关键字列序重排文字，密钥为字母排列顺序关键字。",
-    hmac_info:"HMAC：带密钥的哈希消息认证码，用于验证消息完整性和真实性。"
+    hmac_info:"HMAC：带密钥的哈希消息认证码，用于验证消息完整性和真实性。",
+    binaryFileWarning:"警告：二进制文件加密后将输出Base64编码文本，解密时会还原为原始二进制格式。",
+    largeFileWarning:"文件较大，处理可能需要较长时间，请耐心等待。"
   },
   tw: {
     title:"全算法加密工具",subtitle:"純瀏覽器端 · 70+種算法 · 全部真實實現 · 繁簡英三語",
@@ -318,7 +332,8 @@ const i18n = {
     parameters:"參數",password:"密碼",enterPassword:"輸入密碼",generate:"生成",
     inputMode:"📝 輸入模式",textInput:"📝 文字輸入",fileEncryption:"📁 文件加密",
     inputPlaintext:"輸入明文（解密時貼上密文）",enterTextHere:"在此輸入要加密的文字…",
-    selectFile:"📁 選擇文件",encrypt:"加密",decrypt:"解密",clearAll:"一鍵清空",cancel:"取消",
+    selectFile:"📁 選擇文件",dropFileHere:"拖拽文件到此處或點擊上傳",
+    encrypt:"加密",decrypt:"解密",clearAll:"一鍵清空",cancel:"取消",
     outputResult:"📤 輸出結果",resultWillShowHere:"加密或解密結果將顯示在這裡…",
     copyResult:"複製結果",downloadResult:"下載結果",swapText:"⇄ 互換",
     securityNote:"🛡️ 安全說明：",
@@ -346,7 +361,9 @@ const i18n = {
     affine_info:"Affine密碼：仿射密碼，密鑰為兩個整數 a,b（如 5,8），a必須與26互質。",
     railfence_info:"柵欄密碼：將文字按Z字形寫入多行，密鑰為行數（預設2）。",
     coltrans_info:"列換位密碼：按關鍵字列序重排文字，密鑰為字母排列順序關鍵字。",
-    hmac_info:"HMAC：帶密鑰的雜湊訊息認證碼，用於驗證訊息完整性和真實性。"
+    hmac_info:"HMAC：帶密鑰的雜湊訊息認證碼，用於驗證訊息完整性和真實性。",
+    binaryFileWarning:"警告：二進制文件加密後將輸出Base64編碼文本，解密時會還原為原始二進制格式。",
+    largeFileWarning:"文件較大，處理可能需要較長時間，請耐心等待。"
   },
   en: {
     title:"All-Algorithm Encryption Tool",subtitle:"Pure browser · 70+ algorithms · All fully implemented · ZH/TW/EN",
@@ -357,7 +374,8 @@ const i18n = {
     parameters:"Parameters",password:"Password",enterPassword:"Enter password",generate:"Generate",
     inputMode:"📝 Input Mode",textInput:"📝 Text",fileEncryption:"📁 File",
     inputPlaintext:"Enter plaintext (paste ciphertext to decrypt)",enterTextHere:"Enter text to encrypt…",
-    selectFile:"📁 Select File",encrypt:"Encrypt",decrypt:"Decrypt",clearAll:"Clear All",cancel:"Cancel",
+    selectFile:"📁 Select File",dropFileHere:"Drag and drop a file here or click to upload",
+    encrypt:"Encrypt",decrypt:"Decrypt",clearAll:"Clear All",cancel:"Cancel",
     outputResult:"📤 Output",resultWillShowHere:"Result will appear here…",
     copyResult:"Copy",downloadResult:"Download",swapText:"⇄ Swap",
     securityNote:"🛡️ Security Note:",
@@ -385,7 +403,9 @@ const i18n = {
     affine_info:"Affine cipher: key = two integers a,b (e.g. 5,8). 'a' must be coprime to 26.",
     railfence_info:"Rail fence cipher: writes text in a zigzag pattern across N rails (default 2). Key = number of rails.",
     coltrans_info:"Columnar transposition: rearranges columns by keyword order.",
-    hmac_info:"HMAC: keyed-hash message authentication code. Verifies message integrity and authenticity."
+    hmac_info:"HMAC: keyed-hash message authentication code. Verifies message integrity and authenticity.",
+    binaryFileWarning:"Warning: Binary files will be encrypted as Base64 text and restored to original format on decryption.",
+    largeFileWarning:"Large file detected. Processing may take some time, please be patient."
   }
 };
 
@@ -397,7 +417,8 @@ const state = {
   currentTab: 'text', 
   selectedFile: null, 
   isProcessing: false, 
-  abortController: null 
+  abortController: null,
+  isMenuOpen: true // 修复：明确跟踪菜单展开状态
 };
 
 // 常量定义
@@ -416,24 +437,33 @@ const ALGO_INFO_KEYS = {
   affine:'affine_info',railfence:'railfence_info',coltrans:'coltrans_info',
   'hmac-sha256':'hmac_info','hmac-sha512':'hmac_info'
 };
+const CHUNK_SIZE = 1024 * 1024; // 1MB 分块处理大文件
 
 // ===================== 工具函数 =====================
 function t(key) { 
   return (i18n[currentLang] || i18n.zh)[key] || key; 
 }
-
 function mod(n, m) { 
   return ((n % m) + m) % m; 
 }
-
 function gcd(a, b) { 
   return b === 0 ? a : gcd(b, mod(a, b)); 
 }
-
 function modInverse(a, m) { 
   for (let x = 1; x < m; x++) 
     if (mod(a * x, m) === 1) return x; 
   return null; 
+}
+
+// ===================== 智能语言识别 =====================
+function detectBrowserLanguage() {
+  const l = (navigator.language || navigator.userLanguage || '').toLowerCase();
+  // 简体中文
+  if (l === 'zh-cn' || l === 'zh-sg' || l === 'zh') return 'zh';
+  // 繁体中文
+  if (l === 'zh-tw' || l === 'zh-hk' || l === 'zh-mo') return 'tw';
+  // 其他所有语言使用英语
+  return 'en';
 }
 
 // ===================== 语言切换 =====================
@@ -494,13 +524,6 @@ function switchLanguage(lang) {
   }
 }
 
-function detectBrowserLanguage() {
-  const l = (navigator.language || '').toLowerCase();
-  if (l.startsWith('en')) return 'en';
-  if (l === 'zh-tw' || l === 'zh-hk' || l === 'zh-mo') return 'tw';
-  return 'zh';
-}
-
 // ===================== DOM缓存 =====================
 function cacheDOM() {
   DOM.algoButtonsContainer = document.getElementById('algoButtonsContainer');
@@ -537,6 +560,7 @@ function cacheDOM() {
   DOM.progressBarWrap = document.getElementById('progressBarWrap');
   DOM.progressBar = document.getElementById('progressBar');
   DOM.swapBtn = document.getElementById('swapBtn');
+  DOM.fileDropArea = document.getElementById('fileDropArea');
 }
 
 // ===================== 算法信息更新 =====================
@@ -557,7 +581,6 @@ function generatePassword(length = 16) {
   crypto.getRandomValues(arr);
   return [...arr].map(n => chars[n % chars.length]).join('');
 }
-
 function calculatePasswordStrength(pw) {
   if (!pw) return 0;
   let s = 0;
@@ -570,7 +593,6 @@ function calculatePasswordStrength(pw) {
   if (/[^a-zA-Z0-9]/.test(pw)) s++;
   return Math.min(s, 7);
 }
-
 function updateStrengthLabel(pw) {
   const s = calculatePasswordStrength(pw);
   const pct = (s / 7) * 100;
@@ -625,7 +647,6 @@ function formatFileSize(bytes) {
 // 古典密码辅助函数
 function alpha(c) { return /[a-zA-Z]/.test(c); }
 function upper(c) { return c === c.toUpperCase(); }
-
 // 凯撒密码
 function caesarEncrypt(text, shift) {
   shift = parseInt(shift) || 3;
@@ -635,11 +656,9 @@ function caesarEncrypt(text, shift) {
     return String.fromCharCode(mod(c.charCodeAt(0) - base + shift, 26) + base);
   }).join('');
 }
-
 function caesarDecrypt(text, shift) {
   return caesarEncrypt(text, -parseInt(shift) || 3);
 }
-
 // 维吉尼亚密码
 function vigenereEncrypt(text, key) {
   if (!key) return text;
@@ -654,7 +673,6 @@ function vigenereEncrypt(text, key) {
     return String.fromCharCode(mod(c.charCodeAt(0) - base + s, 26) + base);
   }).join('');
 }
-
 function vigenereDecrypt(text, key) {
   if (!key) return text;
   key = key.toUpperCase().replace(/[^A-Z]/g, '');
@@ -668,7 +686,6 @@ function vigenereDecrypt(text, key) {
     return String.fromCharCode(mod(c.charCodeAt(0) - base - s, 26) + base);
   }).join('');
 }
-
 // Autokey密码
 function autokeyEncrypt(text, key) {
   const alpha_only = text.replace(/[^A-Za-z]/g, '').toUpperCase();
@@ -685,7 +702,6 @@ function autokeyEncrypt(text, key) {
   }
   return res;
 }
-
 function autokeyDecrypt(text, key) {
   key = key.toUpperCase().replace(/[^A-Z]/g, '');
   let decrypted = '', ki = 0;
@@ -704,7 +720,6 @@ function autokeyDecrypt(text, key) {
   }
   return decrypted;
 }
-
 // Beaufort密码
 function beaufortEncrypt(text, key) {
   if (!key) return text;
@@ -718,9 +733,7 @@ function beaufortEncrypt(text, key) {
     return String.fromCharCode(mod(s - (c.toUpperCase().charCodeAt(0) - 65), 26) + 65);
   }).join('');
 }
-
 const beaufortDecrypt = beaufortEncrypt;
-
 // ROT13
 function rot13(text) {
   return text.replace(/[a-zA-Z]/g, c => {
@@ -728,13 +741,11 @@ function rot13(text) {
     return String.fromCharCode(mod(c.charCodeAt(0) - base + 13, 26) + base);
   });
 }
-
 // ROT47
 function rot47(text) {
   return text.replace(/[!-~]/g, c => 
     String.fromCharCode(33 + mod(c.charCodeAt(0) - 33 + 47, 94)));
 }
-
 // Atbash密码
 function atbash(text) {
   return text.replace(/[a-zA-Z]/g, c => {
@@ -742,7 +753,6 @@ function atbash(text) {
     return String.fromCharCode(base + 25 - (c.charCodeAt(0) - base));
   });
 }
-
 // Affine密码
 function affineEncrypt(text, keyStr) {
   const [a, b] = keyStr.split(',').map(Number);
@@ -754,7 +764,6 @@ function affineEncrypt(text, keyStr) {
     return String.fromCharCode(mod(a * (c.charCodeAt(0) - base) + b, 26) + base);
   });
 }
-
 function affineDecrypt(text, keyStr) {
   const [a, b] = keyStr.split(',').map(Number);
   if (isNaN(a) || isNaN(b)) throw new Error('密钥格式：a,b');
@@ -767,7 +776,6 @@ function affineDecrypt(text, keyStr) {
     return String.fromCharCode(mod(aInv * (c.charCodeAt(0) - base - b), 26) + base);
   });
 }
-
 // 栅栏密码
 function railfenceEncrypt(text, rails) {
   rails = parseInt(rails) || 2;
@@ -785,7 +793,6 @@ function railfenceEncrypt(text, rails) {
   
   return fence.map(r => r.join('')).join('');
 }
-
 function railfenceDecrypt(text, rails) {
   rails = parseInt(rails) || 2;
   if (rails < 2) rails = 2;
@@ -819,7 +826,6 @@ function railfenceDecrypt(text, rails) {
   
   return result;
 }
-
 // 列换位密码
 function coltransEncrypt(text, key) {
   if (!key) key = 'KEY';
@@ -834,7 +840,6 @@ function coltransEncrypt(text, key) {
   
   return order.map(c => grid.map(row => row[c]).join('')).join('');
 }
-
 function coltransDecrypt(text, key) {
   if (!key) key = 'KEY';
   const order = [...key.toUpperCase()].map((c, i) => ({ c, i }))
@@ -855,7 +860,6 @@ function coltransDecrypt(text, key) {
   
   return grid.map(r => r.join('')).join('').replace(/_+$/, '');
 }
-
 // Playfair密码
 function playfairBuildSquare(key) {
   key = (key || 'KEY').toUpperCase().replace(/J/g, 'I').replace(/[^A-Z]/g, '');
@@ -869,12 +873,10 @@ function playfairBuildSquare(key) {
   }
   return sq;
 }
-
 function playfairPos(sq, c) {
   const i = sq.indexOf(c);
   return [Math.floor(i / 5), i % 5];
 }
-
 function playfairEncryptPair(sq, a, b, enc) {
   const [ra, ca] = playfairPos(sq, a);
   const [rb, cb] = playfairPos(sq, b);
@@ -893,7 +895,6 @@ function playfairEncryptPair(sq, a, b, enc) {
   }
   return [sq[ra * 5 + cb], sq[rb * 5 + ca]];
 }
-
 function playfairEncrypt(text, key) {
   const sq = playfairBuildSquare(key);
   text = text.toUpperCase().replace(/J/g, 'I').replace(/[^A-Z]/g, '');
@@ -914,13 +915,11 @@ function playfairEncrypt(text, key) {
   
   return pairs.map(([a, b]) => playfairEncryptPair(sq, a, b, true).join('')).join(' ');
 }
-
 function playfairDecrypt(text, key) {
   const sq = playfairBuildSquare(key);
   const pairs = text.toUpperCase().replace(/[^A-Z ]/g, '').split(' ').filter(s => s.length === 2);
   return pairs.map(([a, b]) => playfairEncryptPair(sq, a, b, false).join('')).join('');
 }
-
 // Polybius方阵
 function polybiusEncrypt(text) {
   const alpha = 'ABCDEFGHIKLMNOPQRSTUVWXYZ';
@@ -929,7 +928,6 @@ function polybiusEncrypt(text) {
     return i < 0 ? '' : String(Math.floor(i / 5) + 1) + (i % 5 + 1);
   }).join(' ');
 }
-
 function polybiusDecrypt(text) {
   const alpha = 'ABCDEFGHIKLMNOPQRSTUVWXYZ';
   return text.trim().split(/\s+/).map(p => {
@@ -939,7 +937,6 @@ function polybiusDecrypt(text) {
     return i >= 0 && i < alpha.length ? alpha[i] : '?';
   }).join('');
 }
-
 // Hill 2x2密码
 function hillEncrypt(text, keyStr) {
   const nums = keyStr.split(',').map(Number);
@@ -962,7 +959,6 @@ function hillEncrypt(text, keyStr) {
   }
   return res;
 }
-
 function hillDecrypt(text, keyStr) {
   const nums = keyStr.split(',').map(Number);
   if (nums.length !== 4 || nums.some(isNaN)) 
@@ -988,7 +984,6 @@ function hillDecrypt(text, keyStr) {
   }
   return res;
 }
-
 // ADFGVX密码
 function adfgvxBuildSquare(key) {
   key = (key || 'KEY').toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -1003,7 +998,6 @@ function adfgvxBuildSquare(key) {
   }
   return sq;
 }
-
 function adfgvxEncrypt(text, key) {
   const sq = adfgvxBuildSquare(key);
   const labels = 'ADFGVX';
@@ -1015,7 +1009,6 @@ function adfgvxEncrypt(text, key) {
   
   return coltransEncrypt(step1, key);
 }
-
 function adfgvxDecrypt(text, key) {
   const step1 = coltransDecrypt(text, key);
   const sq = adfgvxBuildSquare(key);
@@ -1029,7 +1022,6 @@ function adfgvxDecrypt(text, key) {
   }
   return res;
 }
-
 // Bifid密码
 function bifidBuildSquare(key) {
   key = (key || 'KEY').toUpperCase().replace(/J/g, 'I').replace(/[^A-Z]/g, '');
@@ -1044,7 +1036,6 @@ function bifidBuildSquare(key) {
   }
   return sq;
 }
-
 function bifidEncrypt(text, key) {
   const sq = bifidBuildSquare(key);
   text = text.toUpperCase().replace(/J/g, 'I').replace(/[^A-Z]/g, '');
@@ -1063,7 +1054,6 @@ function bifidEncrypt(text, key) {
   }
   return res;
 }
-
 function bifidDecrypt(text, key) {
   const sq = bifidBuildSquare(key);
   text = text.toUpperCase().replace(/[^A-Z]/g, '');
@@ -1082,7 +1072,6 @@ function bifidDecrypt(text, key) {
   }
   return res;
 }
-
 // Four-Square密码
 function fourSquareBuildSquare(key) {
   key = (key || 'EXAMPLE').toUpperCase().replace(/J/g, 'I').replace(/[^A-Z]/g, '');
@@ -1097,7 +1086,6 @@ function fourSquareBuildSquare(key) {
   }
   return sq;
 }
-
 function fourSquareEncrypt(text, key) {
   const alpha = 'ABCDEFGHIKLMNOPQRSTUVWXYZ';
   const sq = fourSquareBuildSquare(key);
@@ -1113,7 +1101,6 @@ function fourSquareEncrypt(text, key) {
   }
   return res;
 }
-
 function fourSquareDecrypt(text, key) {
   const alpha = 'ABCDEFGHIKLMNOPQRSTUVWXYZ';
   const sq = fourSquareBuildSquare(key);
@@ -1127,11 +1114,9 @@ function fourSquareDecrypt(text, key) {
   }
   return res;
 }
-
 // ===================== 编码格式 =====================
 const B32_ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
 const B32H_ALPHA = '0123456789ABCDEFGHIJKLMNOPQRSTUV';
-
 function base32Encode(text, alpha) {
   alpha = alpha || B32_ALPHA;
   const bytes = new TextEncoder().encode(text);
@@ -1153,7 +1138,6 @@ function base32Encode(text, alpha) {
   while (out.length % 8) out += '=';
   return out;
 }
-
 function base32Decode(text, alpha) {
   alpha = alpha || B32_ALPHA;
   text = text.toUpperCase().replace(/=+$/, '');
@@ -1173,9 +1157,7 @@ function base32Decode(text, alpha) {
   
   return new TextDecoder().decode(new Uint8Array(out));
 }
-
 const B85_CHARS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~';
-
 function base85Encode(text) {
   const bytes = new TextEncoder().encode(text);
   let res = '';
@@ -1197,7 +1179,6 @@ function base85Encode(text) {
   
   return res;
 }
-
 function base85Decode(text) {
   const bytes = [];
   for (let i = 0; i < text.length; i += 5) {
@@ -1216,9 +1197,7 @@ function base85Decode(text) {
   
   return new TextDecoder().decode(new Uint8Array(bytes));
 }
-
 const B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-
 function base58Encode(text) {
   const bytes = new TextEncoder().encode(text);
   let num = BigInt(0);
@@ -1240,7 +1219,6 @@ function base58Encode(text) {
   
   return res || '1';
 }
-
 function base58Decode(text) {
   let num = BigInt(0);
   for (const c of text) {
@@ -1262,9 +1240,7 @@ function base58Decode(text) {
   
   return new TextDecoder().decode(new Uint8Array(bytes));
 }
-
 const B45 = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:';
-
 function base45Encode(text) {
   const bytes = new TextEncoder().encode(text);
   let res = '';
@@ -1281,7 +1257,6 @@ function base45Encode(text) {
   
   return res;
 }
-
 function base45Decode(text) {
   const bytes = [];
   for (let i = 0; i < text.length; i += 3) {
@@ -1296,7 +1271,6 @@ function base45Decode(text) {
   
   return new TextDecoder().decode(new Uint8Array(bytes));
 }
-
 const MORSE = {
   'A':'.-','B':'-...','C':'-.-.','D':'-..','E':'.','F':'..-.','G':'--.','H':'....','I':'..','J':'.---',
   'K':'-.-','L':'.-..','M':'--','N':'-.','O':'---','P':'.--.','Q':'--.-','R':'.-.','S':'...','T':'-',
@@ -1305,19 +1279,15 @@ const MORSE = {
   '.':'.-.-.-',',':'--..--','?':'..--..','!':'-.-.--',"'":'.----.','/':'-..-.','(':'-.--.',')':'-.--.-',
   '&':'.-...',':':'---...',';':'-.-.-.','=':'-...-','+':'.-.-.','-':'-....-','_':'..--.-','"':'.-..-.','$':'...-..-','@':'.--.-.'
 };
-
 const MORSE_REV = Object.fromEntries(Object.entries(MORSE).map(([k, v]) => [v, k]));
-
 function morseEncode(text) {
   return text.toUpperCase().split('').map(c => 
     c === ' ' ? '/' : (MORSE[c] || '')).filter(Boolean).join(' ');
 }
-
 function morseDecode(text) {
   return text.split(' / ').map(w => 
     w.split(' ').map(c => MORSE_REV[c] || '?').join('')).join(' ');
 }
-
 function uuEncode(text) {
   const bytes = new TextEncoder().encode(text);
   let res = 'begin 644 encoded\n';
@@ -1341,7 +1311,6 @@ function uuEncode(text) {
   
   return res + 'end';
 }
-
 function uuDecode(text) {
   const lines = text.split('\n').filter(l => !l.startsWith('begin') && l !== 'end' && l);
   const bytes = [];
@@ -1360,49 +1329,40 @@ function uuDecode(text) {
   
   return new TextDecoder().decode(new Uint8Array(bytes.slice(0, bytes.length - bytes.length % 3)));
 }
-
 function unicodeEscape(text) {
   return [...text].map(c => 
     c.charCodeAt(0) > 127 || c === '\\' 
       ? `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}` 
       : c).join('');
 }
-
 function unicodeUnescape(text) {
   return text.replace(/\\u([0-9a-fA-F]{4})/g, (_, h) => 
     String.fromCharCode(parseInt(h, 16)));
 }
-
 function textToBinary(text) {
   return new TextEncoder().encode(text).reduce((a, b) => 
     a + (b >>> 0).toString(2).padStart(8, '0') + ' ', '').trim();
 }
-
 function binaryToText(text) {
   const bytes = text.trim().split(/\s+/).map(b => parseInt(b, 2));
   return new TextDecoder().decode(new Uint8Array(bytes));
 }
-
 function textToOctal(text) {
   return new TextEncoder().encode(text).reduce((a, b) => 
     a + (b >>> 0).toString(8).padStart(3, '0') + ' ', '').trim();
 }
-
 function octalToText(text) {
   const bytes = text.trim().split(/\s+/).map(b => parseInt(b, 8));
   return new TextDecoder().decode(new Uint8Array(bytes));
 }
-
 function textToHex(text) {
   return Array.from(new TextEncoder().encode(text)).map(b => 
     b.toString(16).padStart(2, '0')).join('');
 }
-
 function hexToText(text) {
   const bytes = text.replace(/\s/g, '').match(/.{1,2}/g).map(b => parseInt(b, 16));
   return new TextDecoder().decode(new Uint8Array(bytes));
 }
-
 // ===================== MD5 (纯JS实现) =====================
 function md5(str) {
   function safeAdd(x, y) {
@@ -1540,7 +1500,6 @@ function md5(str) {
   return [a, b, c, d].map(n => 
     (n >>> 0).toString(16).padStart(8, '0').match(/.{2}/g).reverse().join('')).join('');
 }
-
 // CRC32
 const CRC32_TABLE = (() => {
   const t = new Int32Array(256);
@@ -1553,7 +1512,6 @@ const CRC32_TABLE = (() => {
   }
   return t;
 })();
-
 function crc32(text) {
   const bytes = new TextEncoder().encode(text);
   let c = -1;
@@ -1562,7 +1520,6 @@ function crc32(text) {
   }
   return ((c ^ -1) >>> 0).toString(16).padStart(8, '0');
 }
-
 // SHA3 (Keccak)
 function sha3(str, bits) {
   const rate = (1600 - bits * 2) / 8;
@@ -1650,7 +1607,6 @@ function sha3(str, bits) {
   
   return out.map(b => b.toString(16).padStart(2, '0')).join('');
 }
-
 // ===================== XOR =====================
 function xorEncrypt(text, key) {
   if (!key) key = 'default';
@@ -1659,7 +1615,6 @@ function xorEncrypt(text, key) {
   const out = enc.map((b, i) => b ^ kenc[i % kenc.length]);
   return btoa(String.fromCharCode(...out));
 }
-
 function xorDecrypt(text, key) {
   if (!key) key = 'default';
   const bytes = Uint8Array.from(atob(text), c => c.charCodeAt(0));
@@ -1667,7 +1622,6 @@ function xorDecrypt(text, key) {
   const out = bytes.map((b, i) => b ^ kenc[i % kenc.length]);
   return new TextDecoder().decode(out);
 }
-
 // ===================== RC4 =====================
 function rc4Core(text_bytes, key) {
   const kenc = new TextEncoder().encode(key || 'default');
@@ -1690,7 +1644,6 @@ function rc4Core(text_bytes, key) {
   
   return out;
 }
-
 function rc4dropCore(text_bytes, key, drop = 256) {
   const kenc = new TextEncoder().encode(key || 'default');
   const s = Array.from({ length: 256 }, (_, i) => i);
@@ -1718,27 +1671,22 @@ function rc4dropCore(text_bytes, key, drop = 256) {
   
   return out;
 }
-
 function rc4Encrypt(text, key) {
   const b = new TextEncoder().encode(text);
   return btoa(String.fromCharCode(...rc4Core(b, key)));
 }
-
 function rc4Decrypt(text, key) {
   const b = Uint8Array.from(atob(text), c => c.charCodeAt(0));
   return new TextDecoder().decode(new Uint8Array(rc4Core(b, key)));
 }
-
 function rc4dropEncrypt(text, key) {
   const b = new TextEncoder().encode(text);
   return btoa(String.fromCharCode(...rc4dropCore(b, key)));
 }
-
 function rc4dropDecrypt(text, key) {
   const b = Uint8Array.from(atob(text), c => c.charCodeAt(0));
   return new TextDecoder().decode(new Uint8Array(rc4dropCore(b, key)));
 }
-
 // ===================== Web Crypto 辅助函数 =====================
 async function deriveKey(password, salt, bits) {
   const enc = new TextEncoder();
@@ -1750,7 +1698,6 @@ async function deriveKey(password, salt, bits) {
     km, { name: 'AES-GCM', length: bits }, false, ['encrypt', 'decrypt']
   );
 }
-
 async function deriveCBCKey(password, salt, bits) {
   const enc = new TextEncoder();
   const km = await crypto.subtle.importKey(
@@ -1761,7 +1708,6 @@ async function deriveCBCKey(password, salt, bits) {
     km, { name: 'AES-CBC', length: bits }, false, ['encrypt', 'decrypt']
   );
 }
-
 async function deriveCTRKey(password, salt, bits) {
   const enc = new TextEncoder();
   const km = await crypto.subtle.importKey(
@@ -1772,7 +1718,6 @@ async function deriveCTRKey(password, salt, bits) {
     km, { name: 'AES-CTR', length: bits }, false, ['encrypt', 'decrypt']
   );
 }
-
 async function aesGcmEncrypt(text, password, bits) {
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const iv = crypto.getRandomValues(new Uint8Array(12));
@@ -1788,7 +1733,6 @@ async function aesGcmEncrypt(text, password, bits) {
   
   return btoa(String.fromCharCode(...all));
 }
-
 async function aesGcmDecrypt(text, password, bits) {
   const all = Uint8Array.from(atob(text), c => c.charCodeAt(0));
   const salt = all.slice(0, 16);
@@ -1802,7 +1746,6 @@ async function aesGcmDecrypt(text, password, bits) {
   
   return new TextDecoder().decode(pt);
 }
-
 async function aesCbcEncrypt(text, password) {
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const iv = crypto.getRandomValues(new Uint8Array(16));
@@ -1818,7 +1761,6 @@ async function aesCbcEncrypt(text, password) {
   
   return btoa(String.fromCharCode(...all));
 }
-
 async function aesCbcDecrypt(text, password) {
   const all = Uint8Array.from(atob(text), c => c.charCodeAt(0));
   const salt = all.slice(0, 16);
@@ -1832,7 +1774,6 @@ async function aesCbcDecrypt(text, password) {
   
   return new TextDecoder().decode(pt);
 }
-
 async function aesCtrEncrypt(text, password) {
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const counter = crypto.getRandomValues(new Uint8Array(16));
@@ -1848,7 +1789,6 @@ async function aesCtrEncrypt(text, password) {
   
   return btoa(String.fromCharCode(...all));
 }
-
 async function aesCtrDecrypt(text, password) {
   const all = Uint8Array.from(atob(text), c => c.charCodeAt(0));
   const salt = all.slice(0, 16);
@@ -1862,7 +1802,6 @@ async function aesCtrDecrypt(text, password) {
   
   return new TextDecoder().decode(pt);
 }
-
 // ChaCha20-Poly1305
 function chacha20Block(key, counter, nonce) {
   const SIGMA = [0x61707865, 0x3320646e, 0x79622d32, 0x6b206574];
@@ -1902,7 +1841,6 @@ function chacha20Block(key, counter, nonce) {
   
   return out;
 }
-
 function chacha20Encrypt(text, password) {
   const key = new Uint8Array(32);
   const pw = new TextEncoder().encode(password);
@@ -1927,7 +1865,6 @@ function chacha20Encrypt(text, password) {
   
   return btoa(String.fromCharCode(...result));
 }
-
 function chacha20Decrypt(text, password) {
   const all = Uint8Array.from(atob(text), c => c.charCodeAt(0));
   const nonce = all.slice(0, 12);
@@ -1949,7 +1886,6 @@ function chacha20Decrypt(text, password) {
   
   return new TextDecoder().decode(out);
 }
-
 // HMAC
 async function hmacSign(text, key, hash) {
   const enc = new TextEncoder();
@@ -1959,7 +1895,6 @@ async function hmacSign(text, key, hash) {
   const sig = await crypto.subtle.sign('HMAC', km, enc.encode(text));
   return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
-
 // RSA+AES
 async function rsaAesEncrypt(text) {
   const kp = await crypto.subtle.generateKey(
@@ -1994,7 +1929,6 @@ async function rsaAesEncrypt(text) {
     privateKey: privB64
   });
 }
-
 async function rsaAesDecrypt(text) {
   const { encAesKey, iv, ct, privateKey } = JSON.parse(text);
   
@@ -2021,7 +1955,6 @@ async function rsaAesDecrypt(text) {
   
   return new TextDecoder().decode(pt);
 }
-
 // ECDH + AES-GCM
 async function ecdhEncrypt(text, password) {
   const enc = new TextEncoder();
@@ -2048,7 +1981,6 @@ async function ecdhEncrypt(text, password) {
   
   return btoa(String.fromCharCode(...all));
 }
-
 async function ecdhDecrypt(text, password) {
   const all = Uint8Array.from(atob(text), c => c.charCodeAt(0));
   const salt = all.slice(0, 16);
@@ -2070,24 +2002,20 @@ async function ecdhDecrypt(text, password) {
   
   return new TextDecoder().decode(pt);
 }
-
 // AES+凯撒
 async function aesCaesarEncrypt(text, password) {
   const shifted = caesarEncrypt(text, 3);
   return await aesGcmEncrypt(shifted, password, 256);
 }
-
 async function aesCaesarDecrypt(text, password) {
   const dec = await aesGcmDecrypt(text, password, 256);
   return caesarDecrypt(dec, 3);
 }
-
 // SHA哈希
 async function hashText(text, algorithm) {
   const buf = await crypto.subtle.digest(algorithm, new TextEncoder().encode(text));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
-
 // ===================== 中文加密 =====================
 const ChineseCrypto = {
   encrypt: (text) => {
@@ -2117,7 +2045,6 @@ const ChineseCrypto = {
     return result;
   }
 };
-
 const ChineseCryptoPlus = {
   encrypt: (text, key) => {
     key = key || 'defaultkey';
@@ -2159,6 +2086,77 @@ const ChineseCryptoPlus = {
     return result;
   }
 };
+
+// ===================== 增强的文件处理函数 =====================
+async function processFile(file, operation, algo, key) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    const chunks = [];
+    let offset = 0;
+    const totalSize = file.size;
+    
+    // 大文件警告
+    if (totalSize > 10 * 1024 * 1024) { // 10MB
+      showStatus(t('largeFileWarning'), 'warning');
+    }
+    
+    // 二进制文件警告
+    if (!file.type.startsWith('text/')) {
+      showStatus(t('binaryFileWarning'), 'warning');
+    }
+    
+    reader.onload = async (e) => {
+      try {
+        const chunk = new Uint8Array(e.target.result);
+        chunks.push(chunk);
+        offset += chunk.length;
+        
+        // 更新进度
+        const progress = Math.round((offset / totalSize) * 100);
+        DOM.progressBar.style.width = progress + '%';
+        
+        if (offset < totalSize) {
+          // 继续读取下一块
+          readNextChunk();
+        } else {
+          // 所有块读取完成
+          const allBytes = new Uint8Array(totalSize);
+          let pos = 0;
+          for (const chunk of chunks) {
+            allBytes.set(chunk, pos);
+            pos += chunk.length;
+          }
+          
+          // 处理文件内容
+          let result;
+          if (operation === 'encrypt') {
+            // 加密：先转为Base64文本，再加密
+            const base64 = btoa(String.fromCharCode(...allBytes));
+            result = await processText(base64, 'encrypt', algo, key);
+          } else {
+            // 解密：先解密文本，再转为二进制
+            const decryptedText = await processText(fileContent, 'decrypt', algo, key);
+            result = Uint8Array.from(atob(decryptedText), c => c.charCodeAt(0));
+          }
+          
+          resolve(result);
+        }
+      } catch (err) {
+        reject(err);
+      }
+    };
+    
+    reader.onerror = () => reject(new Error('文件读取失败'));
+    
+    function readNextChunk() {
+      const slice = file.slice(offset, offset + CHUNK_SIZE);
+      reader.readAsArrayBuffer(slice);
+    }
+    
+    // 开始读取
+    readNextChunk();
+  });
+}
 
 // ===================== 主处理函数 =====================
 async function processText(text, operation, algo, key) {
@@ -2355,6 +2353,28 @@ function setupEventListeners() {
     }
   });
   
+  // 文件拖拽
+  DOM.fileDropArea.addEventListener('dragover', e => {
+    e.preventDefault();
+    DOM.fileDropArea.classList.add('dragover');
+  });
+  
+  DOM.fileDropArea.addEventListener('dragleave', e => {
+    e.preventDefault();
+    DOM.fileDropArea.classList.remove('dragover');
+  });
+  
+  DOM.fileDropArea.addEventListener('drop', e => {
+    e.preventDefault();
+    DOM.fileDropArea.classList.remove('dragover');
+    
+    const f = e.dataTransfer.files[0];
+    if (f) {
+      state.selectedFile = f;
+      DOM.fileInfo.textContent = `${t('selectedFile')}: ${f.name} (${formatFileSize(f.size)})`;
+    }
+  });
+  
   // 输入字符计数
   DOM.plaintextInput.addEventListener('input', () => {
     const n = DOM.plaintextInput.value.length;
@@ -2434,32 +2454,64 @@ function setupEventListeners() {
     const text = DOM.outputText.value;
     if (!text) return;
     
-    const blob = new Blob([text], { type: 'text/plain' });
+    let filename, blob;
+    if (state.currentTab === 'file' && state.selectedFile) {
+      // 文件模式：保留原文件名和扩展名
+      const originalName = state.selectedFile.name;
+      const ext = originalName.lastIndexOf('.') !== -1 
+        ? originalName.slice(originalName.lastIndexOf('.')) 
+        : '';
+      const baseName = originalName.lastIndexOf('.') !== -1 
+        ? originalName.slice(0, originalName.lastIndexOf('.')) 
+        : originalName;
+      
+      filename = `${baseName}_${state.currentAlgo}_${Date.now()}${ext}`;
+      
+      // 如果是解密操作，直接下载二进制文件
+      if (state.lastOperation === 'decrypt') {
+        const bytes = Uint8Array.from(atob(text), c => c.charCodeAt(0));
+        blob = new Blob([bytes], { type: state.selectedFile.type });
+      } else {
+        blob = new Blob([text], { type: 'text/plain' });
+      }
+    } else {
+      // 文本模式
+      filename = `encrypted_${Date.now()}.txt`;
+      blob = new Blob([text], { type: 'text/plain' });
+    }
+    
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `encrypted_${Date.now()}.txt`;
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
   });
   
-  // 折叠/展开算法列表
+  // 修复：折叠/展开算法列表 - 彻底解决无法展开的问题
   DOM.algosHeader.addEventListener('click', () => {
-    const c = DOM.algosContent;
+    const content = DOM.algosContent;
     const icon = DOM.algosHeader.querySelector('.toggle-icon');
     
-    if (c.style.maxHeight === 'none' || c.style.maxHeight) {
-      c.style.maxHeight = c.scrollHeight + 'px';
-      c.offsetHeight; // 强制重绘
-      c.style.maxHeight = '0';
-      icon.style.transform = 'rotate(-90deg)';
-    } else {
-      c.style.maxHeight = c.scrollHeight + 'px';
+    state.isMenuOpen = !state.isMenuOpen;
+    
+    if (state.isMenuOpen) {
+      // 展开
+      content.style.maxHeight = content.scrollHeight + 'px';
       icon.style.transform = 'rotate(0deg)';
-      c.addEventListener('transitionend', function h() {
-        c.style.maxHeight = 'none';
-        c.removeEventListener('transitionend', h);
+      
+      // 动画结束后设置为none，以便内容变化时自动调整高度
+      content.addEventListener('transitionend', function onTransitionEnd() {
+        content.style.maxHeight = 'none';
+        content.removeEventListener('transitionend', onTransitionEnd);
       });
+    } else {
+      // 收起
+      // 先设置当前高度为具体值，再过渡到0
+      content.style.maxHeight = content.scrollHeight + 'px';
+      content.offsetHeight; // 强制重绘
+      content.style.maxHeight = '0';
+      icon.style.transform = 'rotate(-90deg)';
     }
   });
 }
@@ -2468,6 +2520,7 @@ function setupEventListeners() {
 async function performOperation(operation) {
   try {
     state.isProcessing = true;
+    state.lastOperation = operation;
     DOM.encryptBtn.disabled = true;
     DOM.decryptBtn.disabled = true;
     DOM.cancelBtn.style.display = 'inline-flex';
@@ -2498,21 +2551,17 @@ async function performOperation(operation) {
       DOM.progressBarWrap.style.display = 'block';
       DOM.progressBar.style.width = '0';
       
-      const reader = new FileReader();
-      const text = await new Promise((res, rej) => {
-        reader.onload = e => res(e.target.result);
-        reader.onerror = rej;
-        reader.readAsText(state.selectedFile, 'utf-8');
-      });
-      
-      DOM.progressBar.style.width = '50%';
-      
-      const key = DOM.algoParam1.value;
-      const result = await processText(text, operation, state.currentAlgo, key);
+      const result = await processFile(state.selectedFile, operation, state.currentAlgo, DOM.algoParam1.value);
       
       DOM.progressBar.style.width = '100%';
       
-      DOM.outputText.value = result;
+      if (operation === 'encrypt') {
+        DOM.outputText.value = result;
+      } else {
+        // 解密二进制文件时，显示Base64编码以便复制
+        DOM.outputText.value = btoa(String.fromCharCode(...result));
+      }
+      
       DOM.outputInfo.textContent = `${t(operation === 'encrypt' ? 'fileEncryptionComplete' : 'fileDecryptionComplete')}: ${state.selectedFile.name}`;
       DOM.downloadOutputBtn.style.display = 'inline-flex';
       showStatus(t(operation === 'encrypt' ? 'encryptionSuccess' : 'decryptionSuccess'), 'success');
@@ -2542,12 +2591,18 @@ function init() {
   cacheDOM();
   setupEventListeners();
   
+  // 智能语言检测
   const lang = detectBrowserLanguage();
   switchLanguage(lang);
   
   updateStrengthLabel('');
   updateKeyManagementVisibility();
   updateAlgoInfo();
+  
+  // 初始化菜单状态
+  state.isMenuOpen = true;
+  DOM.algosContent.style.maxHeight = 'none';
+  DOM.algosHeader.querySelector('.toggle-icon').style.transform = 'rotate(0deg)';
 }
 
 // 页面加载完成后初始化
